@@ -7,13 +7,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MyToDo">
 <link rel="apple-touch-icon" href="icon.png">
-<title>ToDo App Custom</title>
+<title>ToDo App Pro Plus</title>
 <style>
 :root { --section-opacity: 0.85; }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; background: #000; color: #1a1a1a; }
 
-/* 背景レイヤー：画面最上部まで広げる */
 #bg-layer { position: fixed; inset: 0; background: linear-gradient(135deg,#fde8f0,#fbc8d8); background-size: cover; background-position: center; z-index: -1; transition: background 0.3s; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.05); z-index: 0; pointer-events: none; }
 
@@ -45,7 +44,6 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .add-area input { flex: 1; background: rgba(255,255,255,0.5); border: none; border-radius: 10px; padding: 10px; font-size: 15px; outline: none; }
 .add-area button { background: #4a90e2; color: white; border: none; border-radius: 10px; padding: 0 15px; font-weight: 700; }
 
-/* 振り返り欄：プレースホルダーを修正 */
 .reflection-box { width: calc(100% - 30px); height: 80px; background: rgba(255,255,255,0.4); border: none; border-radius: 12px; padding: 10px; font-size: 14px; margin: 8px 15px 15px; outline: none; resize: none; }
 
 .settings-grid { padding: 15px; display: grid; gap: 15px; }
@@ -90,7 +88,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
   <div class="card">
     <div class="card-title">今日の振り返り</div>
-    <textarea id="reflection" class="reflection-box" placeholder="今日はどんな一日だった？"></textarea>
+    <textarea id="reflection" class="reflection-box" placeholder="メモを残す..."></textarea>
   </div>
 
   <div class="card settings-grid">
@@ -183,14 +181,13 @@ function applySettings() {
   document.documentElement.style.setProperty('--section-opacity', s.op);
 }
 
-function setBg(bg, type, skipRender = false) {
+function setBg(bg, type) {
   data.settings.bg = bg;
   data.settings.bgType = type;
   if(type === 'css' && !presets.includes(bg)) {
     data.history = [bg, ...data.history.filter(x => x !== bg)].slice(0, 3);
   }
-  save(); 
-  if (!skipRender) render();
+  save(); render();
 }
 
 function setOp(v) { data.settings.op = v; save(); render(); }
@@ -213,19 +210,15 @@ function buildSwatches() {
   
   const rain = document.createElement('div');
   rain.className = 'swatch rainbow';
-  rain.innerHTML = `<input type="color" id="custom-picker" value="${data.settings.bg.includes('#') ? data.settings.bg : '#4a90e2'}">`;
+  rain.innerHTML = `<input type="color" id="custom-picker" value="#4a90e2">`;
   list.appendChild(rain);
   
+  // カラーピッカーの挙動改善
   const picker = rain.querySelector('#custom-picker');
-  
-  // 【修正ポイント】選択中に勝手に画面がリセットされないよう調整
-  picker.oninput = (e) => {
-    // 選択中は「見た目だけ」を最速で変え続ける
+  picker.oninput = (e) => { // 選択中も反映
     document.getElementById('bg-layer').style.background = e.target.value;
   };
-  
-  picker.onchange = (e) => {
-    // 指を離して色が確定した時だけ、データを保存してリストを更新する
+  picker.onchange = (e) => { // 確定時に保存
     setBg(e.target.value, 'css');
   };
 
