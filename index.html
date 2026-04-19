@@ -7,13 +7,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MyToDo">
 <link rel="apple-touch-icon" href="icon.png">
-<title>ToDo App Ultimate</title>
+<title>ToDo App Custom</title>
 <style>
 :root { --section-opacity: 0.85; }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; background: #000; color: #1a1a1a; }
 
-/* 背景レイヤー */
+/* 背景レイヤー：画面最上部まで広げる */
 #bg-layer { position: fixed; inset: 0; background: linear-gradient(135deg,#fde8f0,#fbc8d8); background-size: cover; background-position: center; z-index: -1; transition: background 0.3s; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.05); z-index: 0; pointer-events: none; }
 
@@ -28,48 +28,40 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); 
 }
 
-/* ヘッダー */
 .header { padding: 12px; display: flex; align-items: center; justify-content: space-between; }
 .date-wrap { position: relative; flex: 1; text-align: center; }
 .date-label { font-size: 16px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03); padding: 5px 12px; border-radius: 20px; }
-#date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+#date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; -webkit-appearance: none; }
 
 .card-title { font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-/* タスク項目 */
 .task-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
 .cb { width: 22px; height: 22px; accent-color: #4a90e2; }
 .task-text { flex: 1; font-size: 15px; }
 .task-text.done { text-decoration: line-through; color: #aaa; }
-.del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; }
+.del-btn { background: none; border: none; color: #ccc; font-size: 20px; }
 
-/* 入力エリア */
 .add-area { display: flex; gap: 8px; padding: 10px 15px; }
-.add-area input { flex: 1; background: rgba(0,0,0,0.05); border: none; border-radius: 10px; padding: 10px; font-size: 15px; outline: none; }
+.add-area input { flex: 1; background: rgba(255,255,255,0.5); border: none; border-radius: 10px; padding: 10px; font-size: 15px; outline: none; }
 .add-area button { background: #4a90e2; color: white; border: none; border-radius: 10px; padding: 0 15px; font-weight: 700; }
 
-.reflection-box { width: calc(100% - 30px); height: 80px; background: rgba(255,255,255,0.3); border: none; border-radius: 12px; padding: 10px; font-size: 14px; margin: 8px 15px 15px; outline: none; resize: none; }
+/* 振り返り欄：プレースホルダーを修正 */
+.reflection-box { width: calc(100% - 30px); height: 80px; background: rgba(255,255,255,0.4); border: none; border-radius: 12px; padding: 10px; font-size: 14px; margin: 8px 15px 15px; outline: none; resize: none; }
 
-/* 設定パネル */
 .settings-grid { padding: 15px; display: grid; gap: 15px; }
-.label { font-size: 11px; font-weight: 800; color: #777; margin-bottom: 8px; display: block; }
-
-/* 背景パレット */
-.color-list { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background-size: cover; position: relative; }
+.label { font-size: 11px; font-weight: 800; color: #777; margin-bottom: 5px; display: block; }
+.color-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background-size: cover; position: relative; }
 .swatch.active { border-color: #4a90e2; transform: scale(1.1); }
+
 .rainbow { background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); }
 #custom-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-/* 透明度ボタン（2.5倍サイズ） */
-.op-btn-group { display: flex; gap: 10px; }
-.op-btn { flex: 1; height: 40px; border-radius: 12px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 12px; color: #444; }
-.op-btn.active { background: #4a90e2; color: white; }
-
-/* 写真調整 */
 #adjust-panel { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05); display: none; }
 .range-row { display: flex; align-items: center; gap: 10px; font-size: 11px; color: #666; margin-bottom: 5px; }
 .range-row input { flex: 1; accent-color: #4a90e2; }
+
+.history-label { font-size: 9px; color: #999; margin-top: 4px; display: block; }
 </style>
 </head>
 <body>
@@ -81,53 +73,45 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   <div class="card header">
     <button onclick="moveDate(-1)" style="border:none; background:none; font-size:20px; padding:10px;">←</button>
     <div class="date-wrap">
-      <div class="date-label" id="date-label">日付</div>
+      <div class="date-label" id="date-label">日付を選択</div>
       <input type="date" id="date-picker" onchange="jumpDate(this.value)">
     </div>
     <button onclick="moveDate(1)" style="border:none; background:none; font-size:20px; padding:10px;">→</button>
   </div>
 
   <div class="card">
-    <div class="card-title">今日やること</div>
-    <div id="list-today"></div>
+    <div class="card-title">ToDoリスト</div>
+    <div id="task-list"></div>
     <div class="add-area">
-      <input type="text" id="input-today" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('today')">
-      <button onclick="addTask('today')">追加</button>
+      <input type="text" id="task-input" placeholder="新しいタスク..." onkeydown="if(event.key==='Enter')addTask()">
+      <button onclick="addTask()">追加</button>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title">今週やること</div>
-    <div id="list-weekly"></div>
-    <div class="add-area">
-      <input type="text" id="input-weekly" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('weekly')">
-      <button onclick="addTask('weekly')">追加</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">今日のメモ</div>
-    <textarea id="reflection" class="reflection-box" placeholder="その日の記録をここに..."></textarea>
+    <div class="card-title">今日の振り返り</div>
+    <textarea id="reflection" class="reflection-box" placeholder="今日はどんな一日だった？"></textarea>
   </div>
 
   <div class="card settings-grid">
     <div>
-      <span class="label">背景カラー・お気に入り(3個)</span>
+      <span class="label">背景・保存した色 (最大3個)</span>
       <div class="color-list" id="swatch-list"></div>
+      <div class="color-list" id="history-list" style="margin-top:10px;"></div>
     </div>
     
     <div id="adjust-panel">
-      <span class="label">写真の位置を調整</span>
+      <span class="label">写真調整</span>
       <div class="range-row"><span>拡大</span><input type="range" min="100" max="300" id="bg-size" oninput="applyAdjust()"></div>
       <div class="range-row"><span>上下</span><input type="range" min="0" max="100" id="bg-pos" oninput="applyAdjust()"></div>
     </div>
 
     <div>
-      <span class="label">パネルの透明度（大きくしました）</span>
-      <div class="op-btn-group">
-        <button id="op-high" class="op-btn" onclick="setOp(0.3)">高い</button>
-        <button id="op-mid" class="op-btn" onclick="setOp(0.6)">中</button>
-        <button id="op-low" class="op-btn" onclick="setOp(0.85)">低い</button>
+      <span class="label">パネルの透明度</span>
+      <div class="color-list">
+        <button onclick="setOp(0.3)" style="padding:6px 12px; border-radius:10px; border:none; background:rgba(0,0,0,0.05); font-size:11px;">高</button>
+        <button onclick="setOp(0.6)" style="padding:6px 12px; border-radius:10px; border:none; background:rgba(0,0,0,0.05); font-size:11px;">中</button>
+        <button onclick="setOp(0.85)" style="padding:6px 12px; border-radius:10px; border:none; background:rgba(0,0,0,0.05); font-size:11px;">低</button>
       </div>
     </div>
   </div>
@@ -135,7 +119,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
 <script>
 let current = new Date();
-const storageKey = 'todo_ultimate_v1';
+const storageKey = 'todo_v4_final';
 const presets = [
   'linear-gradient(135deg,#fde8f0,#fbc8d8)', 'linear-gradient(135deg,#ede9fe,#ddd6fe)',
   'linear-gradient(135deg,#dbeafe,#bfdbfe)', 'linear-gradient(135deg,#2c2c2c,#1a1a1a)'
@@ -155,29 +139,27 @@ function render() {
   const days = ['日','月','火','水','木','金','土'];
   document.getElementById('date-label').textContent = `${current.getFullYear()}年${current.getMonth()+1}月${current.getDate()}日(${days[current.getDay()]})`;
   
-  // タスク描画 (日付で消さない)
-  ['today', 'weekly'].forEach(type => {
-    const list = document.getElementById('list-' + type);
-    list.innerHTML = '';
-    data.tasks.filter(t => t.type === type).forEach(t => {
-      const div = document.createElement('div');
-      div.className = 'task-item';
-      div.innerHTML = `<input type="checkbox" class="cb" ${t.done?'checked':''}><span class="task-text ${t.done?'done':''}">${t.text}</span><button class="del-btn">×</button>`;
-      div.querySelector('.cb').onchange = (e) => { t.done = e.target.checked; save(); render(); };
-      div.querySelector('.del-btn').onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
-      list.appendChild(div);
-    });
+  const list = document.getElementById('task-list');
+  list.innerHTML = '';
+  data.tasks.forEach(t => {
+    if(t.date !== dStr) return;
+    const div = document.createElement('div');
+    div.className = 'task-item';
+    div.innerHTML = `<input type="checkbox" class="cb" ${t.done?'checked':''}><span class="task-text ${t.done?'done':''}">${t.text}</span><button class="del-btn">×</button>`;
+    div.querySelector('.cb').onchange = (e) => { t.done = e.target.checked; save(); render(); };
+    div.querySelector('.del-btn').onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
+    list.appendChild(div);
   });
-
+  
   document.getElementById('reflection').value = localStorage.getItem('refl_'+dStr) || '';
   applySettings();
   buildSwatches();
 }
 
-function addTask(type) {
-  const input = document.getElementById('input-' + type);
+function addTask() {
+  const input = document.getElementById('task-input');
   if(!input.value.trim()) return;
-  data.tasks.push({ text: input.value, done: false, type: type });
+  data.tasks.push({ text: input.value, done: false, date: getDStr(current) });
   input.value = ''; save(); render();
 }
 
@@ -199,23 +181,16 @@ function applySettings() {
     document.getElementById('adjust-panel').style.display = 'none';
   }
   document.documentElement.style.setProperty('--section-opacity', s.op);
-  
-  // 透明度ボタンのactive状態
-  document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
-  if(s.op === 0.3) document.getElementById('op-high').classList.add('active');
-  if(s.op === 0.6) document.getElementById('op-mid').classList.add('active');
-  if(s.op === 0.85) document.getElementById('op-low').classList.add('active');
 }
 
-function setBg(bg, type) {
+function setBg(bg, type, skipRender = false) {
   data.settings.bg = bg;
   data.settings.bgType = type;
-  // 虹色パレットで選んだ色をお気に入りに保存（最大3個）
   if(type === 'css' && !presets.includes(bg)) {
     data.history = [bg, ...data.history.filter(x => x !== bg)].slice(0, 3);
   }
   save(); 
-  render();
+  if (!skipRender) render();
 }
 
 function setOp(v) { data.settings.op = v; save(); render(); }
@@ -228,8 +203,6 @@ function applyAdjust() {
 function buildSwatches() {
   const list = document.getElementById('swatch-list');
   list.innerHTML = '';
-  
-  // プリセット
   presets.forEach(p => {
     const div = document.createElement('div');
     div.className = 'swatch' + (data.settings.bg === p ? ' active' : '');
@@ -238,35 +211,39 @@ function buildSwatches() {
     list.appendChild(div);
   });
   
-  // お気に入り(3個)
-  data.history.forEach(h => {
-    const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === h ? ' active' : '');
-    div.style.backgroundColor = h;
-    div.onclick = () => setBg(h, 'css');
-    list.appendChild(div);
-  });
-  
-  // 虹色ボタン
   const rain = document.createElement('div');
   rain.className = 'swatch rainbow';
-  rain.innerHTML = `<input type="color" id="custom-picker">`;
+  rain.innerHTML = `<input type="color" id="custom-picker" value="${data.settings.bg.includes('#') ? data.settings.bg : '#4a90e2'}">`;
   list.appendChild(rain);
   
   const picker = rain.querySelector('#custom-picker');
-  picker.oninput = (e) => { // 選んでいる最中
+  
+  // 【修正ポイント】選択中に勝手に画面がリセットされないよう調整
+  picker.oninput = (e) => {
+    // 選択中は「見た目だけ」を最速で変え続ける
     document.getElementById('bg-layer').style.background = e.target.value;
   };
-  picker.onchange = (e) => { // 指を離した時
+  
+  picker.onchange = (e) => {
+    // 指を離して色が確定した時だけ、データを保存してリストを更新する
     setBg(e.target.value, 'css');
   };
 
-  // アップロード
   const up = document.createElement('label');
   up.className = 'swatch';
   up.style.border = '1.5px dashed #aaa';
   up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa">＋</span><input type="file" style="display:none" onchange="const r=new FileReader();r.onload=(ev)=>setBg(ev.target.result,'image');r.readAsDataURL(this.files[0])">`;
   list.appendChild(up);
+
+  const histList = document.getElementById('history-list');
+  histList.innerHTML = data.history.length ? '<span class="history-label">保存した色:</span>' : '';
+  data.history.forEach(h => {
+    const div = document.createElement('div');
+    div.className = 'swatch' + (data.settings.bg === h ? ' active' : '');
+    div.style.backgroundColor = h;
+    div.onclick = () => setBg(h, 'css');
+    histList.appendChild(div);
+  });
 }
 
 document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_'+getDStr(current), e.target.value); };
