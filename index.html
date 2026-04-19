@@ -176,4 +176,95 @@ function render() {
 function addTask(type) {
   const input = document.getElementById('input-' + type);
   if(!input.value.trim()) return;
-  data.tasks.push({ text: input.value, done:
+  data.tasks.push({ text: input.value, done: false, type: type });
+  input.value = ''; save(); render();
+}
+
+function moveDate(n) { current.setDate(current.getDate() + n); render(); }
+function jumpDate(v) { if(!v) return; current = new Date(v.replace(/-/g, '/')); render(); }
+
+function applySettings() {
+  const bg = document.getElementById('bg-layer');
+  const s = data.settings;
+  if(s.bgType === 'image') {
+    bg.style.backgroundImage = `url(${s.bg})`;
+    bg.style.backgroundSize = `${s.size}%`;
+    bg.style.backgroundPosition = `center ${s.pos}%`;
+    document.getElementById('adjust-panel').style.display = 'block';
+  } else {
+    bg.style.background = s.bg;
+    bg.style.backgroundImage = s.bg.includes('gradient') ? s.bg : 'none';
+    bg.style.backgroundColor = s.bg.includes('gradient') ? '' : s.bg;
+    document.getElementById('adjust-panel').style.display = 'none';
+  }
+  document.documentElement.style.setProperty('--section-opacity', s.op);
+  
+  document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
+  if(s.op === 0.3) document.getElementById('op-high').classList.add('active');
+  if(s.op === 0.6) document.getElementById('op-mid').classList.add('active');
+  if(s.op === 0.85) document.getElementById('op-low').classList.add('active');
+}
+
+function setBg(bg, type, skipRender = false) {
+  data.settings.bg = bg;
+  data.settings.bgType = type;
+  if(type === 'css' && !presets.includes(bg)) {
+    data.history = [bg, ...data.history.filter(x => x !== bg)].slice(0, 3);
+  }
+  save(); 
+  if(!skipRender) render();
+}
+
+function setOp(v) { data.settings.op = v; save(); render(); }
+function applyAdjust() { 
+  data.settings.size = document.getElementById('bg-size').value; 
+  data.settings.pos = document.getElementById('bg-pos').value; 
+  save(); applySettings(); 
+}
+
+function buildSwatches() {
+  const list = document.getElementById('swatch-list');
+  list.innerHTML = '';
+  presets.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'swatch' + (data.settings.bg === p ? ' active' : '');
+    div.style.background = p;
+    div.onclick = () => setBg(p, 'css');
+    list.appendChild(div);
+  });
+  
+  const rain = document.createElement('div');
+  rain.className = 'swatch rainbow';
+  rain.innerHTML = `<input type="color" id="custom-picker">`;
+  list.appendChild(rain);
+  
+  const picker = rain.querySelector('#custom-picker');
+  picker.oninput = (e) => {
+    document.getElementById('bg-layer').style.background = e.target.value;
+  };
+  picker.onchange = (e) => {
+    setBg(e.target.value, 'css');
+  };
+
+  const up = document.createElement('label');
+  up.className = 'swatch';
+  up.style.border = '1.5px dashed #aaa';
+  up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa">＋</span><input type="file" style="display:none" onchange="const r=new FileReader();r.onload=(ev)=>setBg(ev.target.result,'image');r.readAsDataURL(this.files[0])">`;
+  list.appendChild(up);
+
+  const histList = document.getElementById('history-list');
+  histList.innerHTML = data.history.length ? '<span class="history-label">保存した色:</span>' : '';
+  data.history.forEach(h => {
+    const div = document.createElement('div');
+    div.className = 'swatch' + (data.settings.bg === h ? ' active' : '');
+    div.style.backgroundColor = h;
+    div.onclick = () => setBg(h, 'css');
+    histList.appendChild(div);
+  });
+}
+
+document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_'+getDStr(current), e.target.value); };
+render();
+</script>
+</body>
+</html>
