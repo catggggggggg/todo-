@@ -59,14 +59,12 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .rainbow { background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); }
 #custom-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-/* 透明度ボタン（巨大化） */
+/* 透明度ボタン */
 .op-btn-group { display: flex; gap: 10px; }
 .op-btn { flex: 1; height: 45px; border-radius: 12px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 13px; color: #444; }
 .op-btn.active { background: #4a90e2; color: white; }
 
-#adjust-panel { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05); display: none; }
-.range-row { display: flex; align-items: center; gap: 10px; font-size: 11px; color: #666; margin-bottom: 5px; }
-.range-row input { flex: 1; accent-color: #4a90e2; }
+#img-modal.show { display: flex !important; }
 </style>
 </head>
 <body>
@@ -109,16 +107,12 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
   <div class="card settings-grid">
     <div>
-      <span class="label">背景カラー・お気に入り(3個)</span>
+      <span class="label">背景を選ぶ</span>
       <div class="color-list" id="swatch-list"></div>
       <div class="color-list" id="history-list" style="margin-top:10px;"></div>
     </div>
-    
-    <div id="adjust-panel">
-      <span class="label">写真の位置調整</span>
-      <div class="range-row"><span>拡大</span><input type="range" min="100" max="300" id="bg-size" oninput="applyAdjust()"></div>
-      <div class="range-row"><span>上下</span><input type="range" min="0" max="100" id="bg-pos" oninput="applyAdjust()"></div>
-    </div>
+
+    <div id="adjust-panel" style="display:none;"></div>
 
     <div>
       <span class="label">パネルの透明度</span>
@@ -131,19 +125,43 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   </div>
 </div>
 
+<div id="img-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.85);flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <div id="img-preview-wrap" style="width:300px;height:300px;overflow:hidden;border-radius:16px;position:relative;background:#111;">
+    <img id="img-preview" src="" alt="" style="position:absolute;width:100%;height:auto;left:0;top:0;transform-origin:center top;">
+  </div>
+  <div style="width:300px;display:grid;gap:10px;">
+    <div style="display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;"><span style="width:32px">拡大</span><input type="range" id="adj-size" min="100" max="300" value="100" oninput="updatePreview()" style="flex:1;accent-color:#4a90e2;"></div>
+    <div style="display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;"><span style="width:32px">上下</span><input type="range" id="adj-pos" min="0" max="100" value="50" oninput="updatePreview()" style="flex:1;accent-color:#4a90e2;"></div>
+  </div>
+  <div style="display:flex;gap:10px;width:300px;">
+    <button onclick="closeModal()" style="flex:1;padding:12px;border-radius:12px;border:none;font-weight:700;font-size:14px;background:rgba(255,255,255,0.15);color:#fff;cursor:pointer;">キャンセル</button>
+    <button onclick="confirmImage()" style="flex:1;padding:12px;border-radius:12px;border:none;font-weight:700;font-size:14px;background:#4a90e2;color:#fff;cursor:pointer;">確定</button>
+  </div>
+</div>
+
 <script>
 let current = new Date();
-const storageKey = 'todo_final_v5'; // 新しくデータを保存
+const storageKey = 'todo_final_v8';
 const presets = [
-  'linear-gradient(135deg,#fde8f0,#fbc8d8)', 'linear-gradient(135deg,#ede9fe,#ddd6fe)',
-  'linear-gradient(135deg,#dbeafe,#bfdbfe)', 'linear-gradient(135deg,#2c2c2c,#1a1a1a)'
+  'linear-gradient(135deg,#fde8f0,#fbc8d8)',
+  'linear-gradient(135deg,#fef9c3,#fde68a)',
+  'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+  'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+  'linear-gradient(135deg,#ede9fe,#ddd6fe)',
+  'linear-gradient(135deg,#ffedd5,#fed7aa)',
+  'linear-gradient(135deg,#fce7f3,#fbcfe8)',
+  'linear-gradient(135deg,#ecfccb,#d9f99d)',
+  'linear-gradient(135deg,#e0f2fe,#bae6fd)',
 ];
 
-let data = JSON.parse(localStorage.getItem(storageKey)) || { 
-  tasks: [], 
-  history: [], 
-  settings: { bg: presets[0], bgType: 'css', size: 100, pos: 50, op: 0.85 } 
+// v7のデータがあれば引き継ぐように設定
+let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v7')) || {
+  tasks: [],
+  uploads: [],
+  settings: { bg: presets[0], bgType: 'css', size: 100, pos: 50, op: 0.85 }
 };
+
+let pendingImageData = null;
 
 function save() { localStorage.setItem(storageKey, JSON.stringify(data)); }
 function getDStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
@@ -152,118 +170,201 @@ function render() {
   const dStr = getDStr(current);
   const days = ['日','月','火','水','木','金','土'];
   document.getElementById('date-label').textContent = `${current.getFullYear()}年${current.getMonth()+1}月${current.getDate()}日(${days[current.getDay()]})`;
-  
-  // タスク描画 (2セクション)
+
   ['today', 'weekly'].forEach(type => {
-    const list = document.getElementById('list-' + type);
-    list.innerHTML = '';
-    // ここがポイント：日付に関わらず全て表示（勝手に消えない）
-    data.tasks.filter(t => t.type === type).forEach(t => {
+    const listEl = document.getElementById('list-' + type);
+    listEl.innerHTML = '';
+
+    const visible = data.tasks.filter(t => {
+      if (t.type !== type) return false;
+      
+      // 古いデータの互換性補正
+      if (!t.createdAt) t.createdAt = '2000-01-01'; 
+      if (t.completedAt === undefined) {
+        if (t.doneDates && t.doneDates.length > 0) {
+          t.completedAt = t.doneDates[t.doneDates.length - 1]; // 最後の完了日を反映
+        } else {
+          t.completedAt = null;
+        }
+      }
+
+      // 1. タスクを追加した日より前には表示しない
+      if (dStr < t.createdAt) return false;
+
+      // 2. 完了している場合
+      if (t.completedAt) {
+        // 完了した日の翌日以降は完全に消える
+        if (dStr > t.completedAt) return false;
+        // 追加した日から完了した日までは表示させる
+        return true;
+      }
+
+      // 未完了なら、追加した日以降ずっと表示させる
+      return true;
+    });
+
+    visible.forEach(t => {
+      const isDone = t.completedAt !== null;
+
       const div = document.createElement('div');
       div.className = 'task-item';
-      div.innerHTML = `<input type="checkbox" class="cb" ${t.done?'checked':''}><span class="task-text ${t.done?'done':''}">${t.text}</span><button class="del-btn">×</button>`;
-      div.querySelector('.cb').onchange = (e) => { t.done = e.target.checked; save(); render(); };
-      div.querySelector('.del-btn').onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
-      list.appendChild(div);
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'cb';
+      cb.checked = isDone;
+      cb.addEventListener('change', () => {
+        if (cb.checked) {
+          t.completedAt = dStr; // 現在表示している日を完了日に設定
+        } else {
+          t.completedAt = null; // チェックを外すと未完了に戻る
+        }
+        save();
+        render(); // すぐに画面を更新
+      });
+
+      const span = document.createElement('span');
+      // 完了している場合は車線を引く（追加日〜完了日まで）
+      span.className = 'task-text' + (isDone ? ' done' : '');
+      span.textContent = t.text;
+
+      const del = document.createElement('button');
+      del.className = 'del-btn';
+      del.textContent = '×';
+      del.onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
+
+      div.appendChild(cb); div.appendChild(span); div.appendChild(del);
+      listEl.appendChild(div);
     });
   });
 
-  document.getElementById('reflection').value = localStorage.getItem('refl_'+dStr) || '';
+  document.getElementById('reflection').value = localStorage.getItem('refl_' + dStr) || '';
   applySettings();
   buildSwatches();
 }
 
 function addTask(type) {
   const input = document.getElementById('input-' + type);
-  if(!input.value.trim()) return;
-  data.tasks.push({ text: input.value, done: false, type: type });
+  if (!input.value.trim()) return;
+  // 追加した日（現在カレンダーで表示している日）を記録
+  data.tasks.push({ 
+    text: input.value.trim(), 
+    type: type, 
+    createdAt: getDStr(current), 
+    completedAt: null 
+  });
   input.value = ''; save(); render();
 }
 
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
-function jumpDate(v) { if(!v) return; current = new Date(v.replace(/-/g, '/')); render(); }
+function jumpDate(v) { if (!v) return; current = new Date(v.replace(/-/g, '/')); render(); }
 
 function applySettings() {
   const bg = document.getElementById('bg-layer');
   const s = data.settings;
-  if(s.bgType === 'image') {
+  if (s.bgType === 'image') {
     bg.style.backgroundImage = `url(${s.bg})`;
     bg.style.backgroundSize = `${s.size}%`;
     bg.style.backgroundPosition = `center ${s.pos}%`;
-    document.getElementById('adjust-panel').style.display = 'block';
+    document.getElementById('adjust-panel').style.display = 'none';
   } else {
+    // 【バグ修正】ここで backgroundImage = 'none' をしていたのを削除しました
     bg.style.background = s.bg;
-    bg.style.backgroundImage = s.bg.includes('gradient') ? s.bg : 'none';
-    bg.style.backgroundColor = s.bg.includes('gradient') ? '' : s.bg;
+    bg.style.backgroundSize = 'cover';
     document.getElementById('adjust-panel').style.display = 'none';
   }
   document.documentElement.style.setProperty('--section-opacity', s.op);
-  
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
-  if(s.op === 0.3) document.getElementById('op-high').classList.add('active');
-  if(s.op === 0.6) document.getElementById('op-mid').classList.add('active');
-  if(s.op === 0.85) document.getElementById('op-low').classList.add('active');
+  if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
+  if (s.op === 0.6) document.getElementById('op-mid').classList.add('active');
+  if (s.op === 0.85) document.getElementById('op-low').classList.add('active');
 }
 
-function setBg(bg, type, skipRender = false) {
-  data.settings.bg = bg;
-  data.settings.bgType = type;
-  if(type === 'css' && !presets.includes(bg)) {
-    data.history = [bg, ...data.history.filter(x => x !== bg)].slice(0, 3);
-  }
-  save(); 
-  if(!skipRender) render();
+function setBg(bg, type) {
+  data.settings.bg = bg; data.settings.bgType = type;
+  save(); render();
 }
 
 function setOp(v) { data.settings.op = v; save(); render(); }
-function applyAdjust() { 
-  data.settings.size = document.getElementById('bg-size').value; 
-  data.settings.pos = document.getElementById('bg-pos').value; 
-  save(); applySettings(); 
-}
 
 function buildSwatches() {
   const list = document.getElementById('swatch-list');
   list.innerHTML = '';
   presets.forEach(p => {
     const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === p ? ' active' : '');
+    div.className = 'swatch' + (data.settings.bg === p && data.settings.bgType === 'css' ? ' active' : '');
     div.style.background = p;
     div.onclick = () => setBg(p, 'css');
     list.appendChild(div);
   });
-  
-  const rain = document.createElement('div');
-  rain.className = 'swatch rainbow';
-  rain.innerHTML = `<input type="color" id="custom-picker">`;
-  list.appendChild(rain);
-  
-  const picker = rain.querySelector('#custom-picker');
-  picker.oninput = (e) => {
-    document.getElementById('bg-layer').style.background = e.target.value;
-  };
-  picker.onchange = (e) => {
-    setBg(e.target.value, 'css');
-  };
 
-  const up = document.createElement('label');
-  up.className = 'swatch';
-  up.style.border = '1.5px dashed #aaa';
-  up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa">＋</span><input type="file" style="display:none" onchange="const r=new FileReader();r.onload=(ev)=>setBg(ev.target.result,'image');r.readAsDataURL(this.files[0])">`;
-  list.appendChild(up);
+  // アップロードボタン
+  const uploadLabel = document.createElement('label');
+  uploadLabel.className = 'swatch';
+  uploadLabel.style.border = '1.5px dashed #aaa';
+  uploadLabel.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:18px">＋</span><input type="file" accept="image/*" style="display:none">`;
+  uploadLabel.querySelector('input').addEventListener('change', onFileSelect);
+  list.appendChild(uploadLabel);
 
+  // 保存済み画像スウォッチ
   const histList = document.getElementById('history-list');
-  histList.innerHTML = data.history.length ? '<span class="history-label">保存した色:</span>' : '';
-  data.history.forEach(h => {
+  histList.innerHTML = '';
+  (data.uploads || []).forEach(u => {
     const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === h ? ' active' : '');
-    div.style.backgroundColor = h;
-    div.onclick = () => setBg(h, 'css');
+    div.className = 'swatch' + (data.settings.bg === u.data && data.settings.bgType === 'image' ? ' active' : '');
+    div.style.backgroundImage = `url(${u.data})`;
+    div.style.backgroundSize = `${u.size}%`;
+    div.style.backgroundPosition = `center ${u.pos}%`;
+    div.onclick = () => { data.settings.size = u.size; data.settings.pos = u.pos; setBg(u.data, 'image'); };
     histList.appendChild(div);
   });
 }
 
-document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_'+getDStr(current), e.target.value); };
+// 画像アップロード→モーダル
+function onFileSelect(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingImageData = ev.target.result;
+    const img = document.getElementById('img-preview');
+    img.src = pendingImageData;
+    document.getElementById('adj-size').value = 100;
+    document.getElementById('adj-pos').value = 50;
+    img.onload = updatePreview;
+    document.getElementById('img-modal').classList.add('show');
+  };
+  reader.readAsDataURL(file);
+}
+
+function updatePreview() {
+  const size = document.getElementById('adj-size').value;
+  const pos = document.getElementById('adj-pos').value;
+  const img = document.getElementById('img-preview');
+  const wrap = document.getElementById('img-preview-wrap');
+  const scale = size / 100;
+  const imgH = img.naturalHeight * (wrap.offsetWidth / img.naturalWidth) * scale;
+  const maxOffset = Math.max(0, imgH - wrap.offsetHeight);
+  img.style.transform = `scale(${scale})`;
+  img.style.transformOrigin = 'center top';
+  img.style.top = `-${(pos / 100) * maxOffset}px`;
+  img.style.width = '100%';
+}
+
+function closeModal() { document.getElementById('img-modal').classList.remove('show'); pendingImageData = null; }
+
+function confirmImage() {
+  if (!pendingImageData) return;
+  const size = parseInt(document.getElementById('adj-size').value);
+  const pos = parseInt(document.getElementById('adj-pos').value);
+  if (!data.uploads) data.uploads = [];
+  data.uploads.unshift({ data: pendingImageData, size, pos });
+  if (data.uploads.length > 3) data.uploads = data.uploads.slice(0, 3);
+  data.settings.size = size; data.settings.pos = pos;
+  setBg(pendingImageData, 'image');
+  closeModal();
+}
+
+document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_' + getDStr(current), e.target.value); };
 render();
 </script>
 </body>
