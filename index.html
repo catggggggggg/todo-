@@ -2,123 +2,169 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ToDo Planner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ToDoリスト">
+<link rel="apple-touch-icon" href="icon.png">
+<title>ToDo Planner Pro</title>
 <style>
-:root {
-  --section-opacity: 0.85; /* デフォルトの透明度 */
+:root { --section-opacity: 0.85; }
+* { 
+  box-sizing: border-box; margin: 0; padding: 0; 
+  -webkit-tap-highlight-color: transparent; 
+  touch-action: manipulation; /* ダブルタップズーム防止 */
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+  overscroll-behavior-y: none;
+  -webkit-user-select: none;
+  user-select: none;
+  background: #000;
+}
+/* 背景レイヤー */
 .planner-wrap {
-  min-height: 100vh; border-radius: 0;
-  overflow: hidden; position: relative;
+  position: fixed; inset: 0;
   background: linear-gradient(135deg,#fde8f0,#fbc8d8);
   background-size: cover; background-position: center;
-  background-attachment: fixed;
+  z-index: -1;
 }
-.overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.1); pointer-events: none; }
-.planner-inner { position: relative; z-index: 1; padding: 12px; display: flex; flex-direction: column; gap: 8px; max-width: 500px; margin: 0 auto; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.1); z-index: 0; pointer-events: none; }
 
-/* 透明度を可変にするため CSS変数を使用 */
+/* コンテンツエリア */
+.planner-inner { 
+  position: relative; z-index: 1; padding: 12px; 
+  padding-top: calc(env(safe-area-inset-top) + 10px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
+  display: flex; flex-direction: column; gap: 10px; 
+  max-width: 500px; margin: 0 auto; height: 100vh; overflow-y: auto; 
+}
+
 .header, .section, .reflection, .bg-panel { 
   background: rgba(255,255,255, var(--section-opacity)); 
-  backdrop-filter: blur(8px); 
-  border-radius: 12px; 
-  border: 0.5px solid rgba(255,255,255,0.7); 
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px; border: 0.5px solid rgba(255,255,255,0.4); 
 }
 
-.header { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; }
-.date-display { font-size: 14px; font-weight: 600; color: #1a1a1a; }
-.nav-btn { background: rgba(0,0,0,0.05); border: none; border-radius: 6px; padding: 4px 12px; font-size: 14px; cursor: pointer; color: #444; }
+/* ヘッダー・カレンダー */
+.header { padding: 12px; display: flex; align-items: center; justify-content: space-between; }
+.date-container { position: relative; text-align: center; flex: 1; }
+.date-display { font-size: 15px; font-weight: 700; color: #1a1a1a; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.date-display::after { content: '▼'; font-size: 8px; color: #666; }
+/* 隠しカレンダー入力 */
+#jump-date { position: absolute; opacity: 0; inset: 0; width: 100%; cursor: pointer; }
 
-.section { overflow: hidden; }
-.section-title { font-size: 10px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 12px 4px; border-bottom: 0.5px solid rgba(0,0,0,0.06); }
-.task-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid rgba(0,0,0,0.04); -webkit-tap-highlight-color: transparent; }
-.task-item:last-child { border-bottom: none; }
-.task-cb { width: 18px; height: 18px; cursor: pointer; accent-color: #4a90d9; flex-shrink: 0; }
-.task-label { font-size: 14px; color: #1a1a1a; line-height: 1.4; flex: 1; user-select: none; }
+.nav-btn { background: rgba(0,0,0,0.05); border: none; border-radius: 8px; width: 36px; height: 32px; font-size: 16px; display: flex; align-items: center; justify-content: center; color: #444; }
+
+.section-title { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 14px 6px; border-bottom: 0.5px solid rgba(0,0,0,0.05); }
+.task-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
+.task-cb { width: 20px; height: 20px; accent-color: #4a90d9; flex-shrink: 0; }
+.task-label { font-size: 14px; color: #1a1a1a; flex: 1; }
 .task-label.done { text-decoration: line-through; color: #aaa; }
-.task-del { background: none; border: none; color: #ccc; font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1; }
+.task-del { background: none; border: none; color: #ccc; font-size: 20px; padding-left: 8px; }
 
-.add-task { display: flex; gap: 6px; padding: 8px 12px; border-top: 0.5px solid rgba(0,0,0,0.06); }
-.add-task input { flex: 1; font-size: 13px; padding: 6px 10px; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 8px; background: rgba(255,255,255,0.5); outline: none; }
-.add-task button { font-size: 12px; font-weight: 600; padding: 0 12px; border: none; border-radius: 8px; background: #4a90d9; color: white; cursor: pointer; }
+.add-task { display: flex; gap: 8px; padding: 10px 14px; }
+.add-task input { 
+  flex: 1; font-size: 14px; padding: 8px 12px; border: none; border-radius: 10px; 
+  background: rgba(255,255,255,0.4); outline: none; -webkit-user-select: auto; user-select: auto; 
+}
+.add-task button { font-size: 13px; font-weight: 700; padding: 0 14px; border: none; border-radius: 10px; background: #4a90d9; color: white; }
 
-.reflection { padding: 8px 12px 10px; }
-.reflection textarea { width: 100%; font-size: 13px; padding: 8px; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 8px; background: rgba(255,255,255,0.5); color: #1a1a1a; resize: none; height: 60px; font-family: inherit; outline: none; margin-top: 6px; }
+.reflection { padding: 12px; }
+.reflection textarea { 
+  width: 100%; font-size: 14px; padding: 10px; border: none; border-radius: 10px; 
+  background: rgba(255,255,255,0.4); color: #1a1a1a; resize: none; height: 70px; 
+  font-family: inherit; outline: none; margin-top: 8px; -webkit-user-select: auto; user-select: auto; 
+}
 
-.bg-panel { padding: 10px 12px; }
-.control-group { margin-bottom: 12px; }
-.control-label { font-size: 10px; font-weight: 600; color: #666; margin-bottom: 6px; display: block; }
-.bg-swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; background-size: cover; }
-.swatch.active, .uploaded-swatch.active { border-color: #4a90d9; }
-.swatch-upload { width: 30px; height: 30px; border-radius: 50%; border: 1.5px dashed #aaa; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: #aaa; background: rgba(255,255,255,0.5); }
-.uploaded-swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; background-size: cover; background-position: center; }
-
-/* 透明度切り替えボタンのスタイル */
+/* 調整パネル */
+.bg-panel { padding: 14px; }
+.control-group { margin-bottom: 14px; }
+.control-label { font-size: 11px; font-weight: 700; color: #666; margin-bottom: 8px; display: block; }
 .opacity-btns { display: flex; gap: 8px; }
-.opacity-btn { flex: 1; padding: 6px; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 6px; background: rgba(255,255,255,0.5); font-size: 11px; cursor: pointer; color: #444; }
-.opacity-btn.active { background: #4a90d9; color: white; border-color: #4a90d9; }
+.opacity-btn { flex: 1; padding: 8px; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 10px; background: rgba(255,255,255,0.4); font-size: 11px; color: #444; border: none; }
+.opacity-btn.active { background: #4a90d9; color: white; }
+
+.bg-swatches { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.swatch, .uploaded-swatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent; background-size: cover; background-position: center; }
+.swatch.active, .uploaded-swatch.active { border-color: #4a90d9; }
+.swatch-upload { width: 34px; height: 34px; border-radius: 50%; border: 1.5px dashed #aaa; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #aaa; background: rgba(255,255,255,0.4); }
+
+/* ズーム・位置調整スライダー */
+.adjust-area { margin-top: 15px; padding-top: 15px; border-top: 0.5px solid rgba(0,0,0,0.08); display: none; }
+.range-box { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.range-box input { flex: 1; accent-color: #4a90d9; }
+.range-box span { font-size: 10px; color: #777; width: 45px; }
 </style>
 </head>
 <body>
 
-<div class="planner-wrap" id="planner-wrap">
-  <div class="overlay"></div>
-  <div class="planner-inner">
-    <div class="header">
-      <button class="nav-btn" onclick="changeDate(-1)">←</button>
-      <div class="date-display" id="date-display"></div>
-      <button class="nav-btn" onclick="changeDate(1)">→</button>
-    </div>
+<div class="planner-wrap" id="planner-bg"></div>
+<div class="overlay"></div>
 
-    <div class="section">
-      <div class="section-title">今日やること</div>
-      <div id="today-tasks"></div>
-      <div class="add-task"><input type="text" id="today-input" placeholder="タスクを追加..."><button onclick="addTask('today')">追加</button></div>
+<div class="planner-inner">
+  <div class="header">
+    <button class="nav-btn" onclick="changeDate(-1)">←</button>
+    <div class="date-container">
+      <div class="date-display" id="date-display">日付を選択</div>
+      <input type="date" id="jump-date" onchange="jumpToDate(this.value)">
     </div>
+    <button class="nav-btn" onclick="changeDate(1)">→</button>
+  </div>
 
-    <div class="section">
-      <div class="section-title">今週やること</div>
-      <div id="weekly-tasks"></div>
-      <div class="add-task"><input type="text" id="weekly-input" placeholder="タスクを追加..."><button onclick="addTask('weekly')">追加</button></div>
-    </div>
+  <div class="section">
+    <div class="section-title">今日やること</div>
+    <div id="today-tasks"></div>
+    <div class="add-task"><input type="text" id="today-input" placeholder="タスクを追加..."><button onclick="addTask('today')">追加</button></div>
+  </div>
 
-    <div class="section">
-      <div class="section-title">時間があればやること</div>
-      <div id="free-tasks"></div>
-      <div class="add-task"><input type="text" id="free-input" placeholder="タスクを追加..."><button onclick="addTask('free')">追加</button></div>
-    </div>
+  <div class="section">
+    <div class="section-title">今週やること</div>
+    <div id="weekly-tasks"></div>
+    <div class="add-task"><input type="text" id="weekly-input" placeholder="タスクを追加..."><button onclick="addTask('weekly')">追加</button></div>
+  </div>
 
-    <div class="reflection">
-      <div class="section-title" style="padding:0; border:none;">今日の振り返り</div>
-      <textarea id="reflection-text" placeholder="今日はどうでしたか？"></textarea>
-    </div>
+  <div class="section">
+    <div class="section-title">時間があればやること</div>
+    <div id="free-tasks"></div>
+    <div class="add-task"><input type="text" id="free-input" placeholder="タスクを追加..."><button onclick="addTask('free')">追加</button></div>
+  </div>
 
-    <div class="bg-panel">
-      <div class="control-group">
-        <span class="control-label">パネルの透明度</span>
-        <div class="opacity-btns">
-          <button class="opacity-btn" onclick="setOpacity(0.35, this)">高い</button>
-          <button class="opacity-btn" onclick="setOpacity(0.6, this)">中</button>
-          <button class="opacity-btn active" id="default-op" onclick="setOpacity(0.85, this)">低い</button>
-        </div>
+  <div class="reflection">
+    <div class="section-title" style="padding:0; border:none;">今日の振り返り</div>
+    <textarea id="reflection-text" placeholder="今日のメモ・振り返り..."></textarea>
+  </div>
+
+  <div class="bg-panel">
+    <div class="control-group">
+      <span class="control-label">パネルの透明度</span>
+      <div class="opacity-btns">
+        <button class="opacity-btn" onclick="setOpacity(0.3, this)">高い</button>
+        <button class="opacity-btn" onclick="setOpacity(0.6, this)">中</button>
+        <button class="opacity-btn active" id="default-op" onclick="setOpacity(0.85, this)">低い</button>
       </div>
-      
-      <div class="control-group">
-        <span class="control-label">背景を変更</span>
-        <div class="bg-swatches" id="bg-swatches">
-          <div class="swatch" style="background:linear-gradient(135deg,#fde8f0,#fbc8d8);" data-bg="linear-gradient(135deg,#fde8f0,#fbc8d8)" onclick="setBg(this)"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#fef9c3,#fde68a);" data-bg="linear-gradient(135deg,#fef9c3,#fde68a)" onclick="setBg(this)"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);" data-bg="linear-gradient(135deg,#d1fae5,#a7f3d0)" onclick="setBg(this)"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);" data-bg="linear-gradient(135deg,#dbeafe,#bfdbfe)" onclick="setBg(this)"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);" data-bg="linear-gradient(135deg,#ede9fe,#ddd6fe)" onclick="setBg(this)"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#2c2c2c,#1a1a1a);" data-bg="linear-gradient(135deg,#2c2c2c,#1a1a1a)" onclick="setBg(this)"></div>
-          <div id="uploaded-swatches" style="display:flex; gap:8px;"></div>
-          <label class="swatch-upload">＋<input type="file" accept="image/*" style="display:none;" onchange="uploadBg(event)"></label>
-        </div>
+    </div>
+    
+    <div class="control-group" style="margin-bottom:0;">
+      <span class="control-label">背景を選択</span>
+      <div class="bg-swatches">
+        <div class="swatch active" style="background:linear-gradient(135deg,#fde8f0,#fbc8d8);" data-bg="linear-gradient(135deg,#fde8f0,#fbc8d8)" onclick="setBg(this)"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);" data-bg="linear-gradient(135deg,#ede9fe,#ddd6fe)" onclick="setBg(this)"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#2c2c2c,#1a1a1a);" data-bg="linear-gradient(135deg,#2c2c2c,#1a1a1a)" onclick="setBg(this)"></div>
+        <div id="uploaded-swatches" style="display:flex; gap:10px;"></div>
+        <label class="swatch-upload">＋<input type="file" accept="image/*" style="display:none;" onchange="uploadBg(event)"></label>
+      </div>
+    </div>
+
+    <div id="adjust-area" class="adjust-area">
+      <span class="control-label">写真の調整</span>
+      <div class="range-box">
+        <span>ズーム</span>
+        <input type="range" min="100" max="300" value="100" oninput="adjustBg('size', this.value)">
+      </div>
+      <div class="range-box">
+        <span>上下位置</span>
+        <input type="range" min="0" max="100" value="50" oninput="adjustBg('pos', this.value)">
       </div>
     </div>
   </div>
@@ -128,73 +174,58 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helve
 let currentDate = new Date();
 
 function generateId() { return Date.now() + Math.floor(Math.random() * 1000); }
-function dateStr(d) { return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); }
+function dateStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 function dateToNum(d) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
 function strToNum(str) { const p = str.split('-'); return parseInt(p[0]) * 10000 + parseInt(p[1]) * 100 + parseInt(p[2]); }
 
-const defaultTasks = {
-  today: [{id:1,text:'アクセンチュアのインターンES作成',done:false,doneDate:null}],
-  weekly: [{id:4,text:'金融システム論閲覧',done:false,doneDate:null}],
-  free: [{id:10,text:'業界分析',done:false,doneDate:null}]
-};
-
-function getMasterTasks() {
-  const saved = localStorage.getItem('master_tasks_v2');
-  if (saved) return JSON.parse(saved);
-  return JSON.parse(JSON.stringify(defaultTasks));
-}
-function saveMasterTasks(t) { localStorage.setItem('master_tasks_v2', JSON.stringify(t)); }
-
-let master = getMasterTasks();
-
-function getVisibleTasks(type) {
-  const viewNum = dateToNum(currentDate);
-  return master[type].filter(t => {
-    if (!t.done || !t.doneDate) return true;
-    return strToNum(t.doneDate) >= viewNum;
-  }).map(t => {
-    let displayDone = (t.done && t.doneDate && strToNum(t.doneDate) === viewNum);
-    return {...t, displayDone};
-  });
-}
+let master = JSON.parse(localStorage.getItem('master_tasks_v2')) || {today:[], weekly:[], free:[]};
+function save() { localStorage.setItem('master_tasks_v2', JSON.stringify(master)); }
 
 function formatDate(d) {
   const days = ['日','月','火','水','木','金','土'];
-  return d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日（' + days[d.getDay()] + '）';
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})`;
+}
+
+function jumpToDate(val) {
+  if(!val) return;
+  currentDate = new Date(val);
+  updateUI();
 }
 
 function changeDate(delta) {
   currentDate.setDate(currentDate.getDate() + delta);
+  updateUI();
+}
+
+function updateUI() {
   document.getElementById('date-display').textContent = formatDate(currentDate);
+  document.getElementById('jump-date').value = dateStr(currentDate);
   document.getElementById('reflection-text').value = localStorage.getItem('refl_' + dateStr(currentDate)) || '';
   ['today','weekly','free'].forEach(renderTasks);
 }
 
 function renderTasks(type) {
   const container = document.getElementById(type + '-tasks');
+  const viewNum = dateToNum(currentDate);
   container.innerHTML = '';
-  getVisibleTasks(type).forEach(task => {
+  
+  master[type].filter(t => !t.done || !t.doneDate || strToNum(t.doneDate) >= viewNum).forEach(task => {
+    const isDone = (task.done && task.doneDate && strToNum(task.doneDate) === viewNum);
     const div = document.createElement('div');
     div.className = 'task-item';
     div.innerHTML = `
-      <input type="checkbox" class="task-cb" ${task.displayDone ? 'checked' : ''}>
-      <span class="task-label ${task.displayDone ? 'done' : ''}">${task.text}</span>
+      <input type="checkbox" class="task-cb" ${isDone ? 'checked' : ''}>
+      <span class="task-label ${isDone ? 'done' : ''}">${task.text}</span>
       <button class="task-del">×</button>
     `;
-    const cb = div.querySelector('.task-cb');
-    cb.onchange = () => {
-      const mTask = master[type].find(mt => mt.id === task.id);
-      if (mTask) {
-        mTask.done = cb.checked;
-        mTask.doneDate = cb.checked ? dateStr(currentDate) : null;
-        saveMasterTasks(master);
-      }
-      renderTasks(type);
+    div.querySelector('.task-cb').onchange = (e) => {
+      task.done = e.target.checked;
+      task.doneDate = e.target.checked ? dateStr(currentDate) : null;
+      save(); renderTasks(type);
     };
     div.querySelector('.task-del').onclick = () => {
       master[type] = master[type].filter(t => t.id !== task.id);
-      saveMasterTasks(master);
-      renderTasks(type);
+      save(); renderTasks(type);
     };
     container.appendChild(div);
   });
@@ -204,33 +235,48 @@ function addTask(type) {
   const input = document.getElementById(type + '-input');
   if (!input.value.trim()) return;
   master[type].push({id: generateId(), text: input.value.trim(), done: false, doneDate: null});
-  saveMasterTasks(master);
-  input.value = '';
-  renderTasks(type);
+  save(); input.value = ''; renderTasks(type);
 }
 
-// 透明度設定機能
+// カスタム背景の調整
+let bgSettings = JSON.parse(localStorage.getItem('bg_settings') || '{"size":100, "pos":50}');
+
+function adjustBg(type, val) {
+  bgSettings[type] = val;
+  localStorage.setItem('bg_settings', JSON.stringify(bgSettings));
+  applyBgStyles();
+}
+
+function applyBgStyles() {
+  const bgEl = document.getElementById('planner-bg');
+  const type = localStorage.getItem('planner_bg_type');
+  if (type === 'image') {
+    bgEl.style.backgroundSize = `${bgSettings.size}%`;
+    bgEl.style.backgroundPosition = `center ${bgSettings.pos}%`;
+    document.getElementById('adjust-area').style.display = 'block';
+  } else {
+    bgEl.style.backgroundSize = 'cover';
+    bgEl.style.backgroundPosition = 'center';
+    document.getElementById('adjust-area').style.display = 'none';
+  }
+}
+
 function setOpacity(val, btn) {
   document.documentElement.style.setProperty('--section-opacity', val);
   document.querySelectorAll('.opacity-btn').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
+  btn.classList.add('active');
   localStorage.setItem('planner_opacity', val);
 }
 
 function setBg(el) {
   const bg = el.dataset.bg;
-  document.getElementById('planner-wrap').style.background = bg;
-  document.querySelectorAll('.swatch,.uploaded-swatch').forEach(s => s.classList.remove('active'));
-  el.classList.add('active');
+  const bgEl = document.getElementById('planner-bg');
+  bgEl.style.background = bg;
   localStorage.setItem('planner_bg', bg);
   localStorage.setItem('planner_bg_type', 'css');
-}
-
-function applyUploadBg(dataUrl) {
-  document.getElementById('planner-wrap').style.background = 'url(' + dataUrl + ') center/cover no-repeat fixed';
-  document.querySelectorAll('.swatch,.uploaded-swatch').forEach(s => s.classList.remove('active'));
-  localStorage.setItem('planner_bg', dataUrl);
-  localStorage.setItem('planner_bg_type', 'image');
+  document.querySelectorAll('.swatch, .uploaded-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  applyBgStyles();
 }
 
 function uploadBg(event) {
@@ -238,62 +284,60 @@ function uploadBg(event) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
-    let uploads = JSON.parse(localStorage.getItem('planner_uploads') || '[]');
-    uploads.unshift(e.target.result);
-    if (uploads.length > 3) uploads = uploads.slice(0,3);
-    localStorage.setItem('planner_uploads', JSON.stringify(uploads));
+    localStorage.setItem('planner_bg', e.target.result);
+    localStorage.setItem('planner_bg_type', 'image');
     renderUploadedSwatches();
-    applyUploadBg(e.target.result);
+    applyBgImage(e.target.result);
   };
   reader.readAsDataURL(file);
 }
 
+function applyBgImage(dataUrl) {
+  const bgEl = document.getElementById('planner-bg');
+  bgEl.style.backgroundImage = `url(${dataUrl})`;
+  bgEl.style.backgroundRepeat = 'no-repeat';
+  document.querySelectorAll('.swatch, .uploaded-swatch').forEach(s => s.classList.remove('active'));
+  applyBgStyles();
+}
+
 function renderUploadedSwatches() {
   const container = document.getElementById('uploaded-swatches');
-  container.innerHTML = '';
-  const uploads = JSON.parse(localStorage.getItem('planner_uploads') || '[]');
   const savedBg = localStorage.getItem('planner_bg');
-  uploads.forEach(dataUrl => {
+  const type = localStorage.getItem('planner_bg_type');
+  container.innerHTML = '';
+  if (type === 'image' && savedBg) {
     const div = document.createElement('div');
-    div.className = 'uploaded-swatch' + (savedBg === dataUrl ? ' active' : '');
-    div.style.backgroundImage = 'url(' + dataUrl + ')';
-    div.onclick = () => applyUploadBg(dataUrl);
+    div.className = 'uploaded-swatch active';
+    div.style.backgroundImage = `url(${savedBg})`;
+    div.onclick = () => applyBgImage(savedBg);
     container.appendChild(div);
-  });
+  }
 }
 
 function init() {
-  // 保存された透明度を復元
-  const savedOpacity = localStorage.getItem('planner_opacity') || 0.85;
-  setOpacity(savedOpacity);
-  document.querySelectorAll('.opacity-btn').forEach(b => {
-    if(b.getAttribute('onclick').includes(savedOpacity)) b.classList.add('active');
-    else b.classList.remove('active');
-  });
-
-  // 保存された背景を復元
+  const op = localStorage.getItem('planner_opacity') || 0.85;
+  setOpacity(op, [...document.querySelectorAll('.opacity-btn')].find(b => b.getAttribute('onclick').includes(op)));
+  
   const bg = localStorage.getItem('planner_bg');
   const type = localStorage.getItem('planner_bg_type');
-  if (bg) {
-    if (type === 'image') applyUploadBg(bg);
-    else {
-      document.getElementById('planner-wrap').style.background = bg;
-      document.querySelectorAll('.swatch').forEach(s => { if (s.dataset.bg === bg) s.classList.add('active'); });
-    }
+  if (type === 'image') applyBgImage(bg);
+  else if (bg) {
+    const bgEl = document.getElementById('planner-bg');
+    bgEl.style.background = bg;
+    document.querySelectorAll('.swatch').forEach(s => { if(s.dataset.bg === bg) s.classList.add('active'); });
   }
-
-  document.getElementById('date-display').textContent = formatDate(currentDate);
-  document.getElementById('reflection-text').value = localStorage.getItem('refl_' + dateStr(currentDate)) || '';
-  ['today','weekly','free'].forEach(renderTasks);
+  
+  updateUI();
   renderUploadedSwatches();
+  
+  // 入力保存
+  document.getElementById('reflection-text').oninput = e => {
+    localStorage.setItem('refl_' + dateStr(currentDate), e.target.value);
+  };
+  ['today-input','weekly-input','free-input'].forEach(id => {
+    document.getElementById(id).onkeydown = e => { if (e.key === 'Enter') addTask(id.replace('-input','')); };
+  });
 }
-
-['today-input','weekly-input','free-input'].forEach(id => {
-  document.getElementById(id).onkeydown = e => { if (e.key === 'Enter') addTask(id.replace('-input','')); };
-});
-document.getElementById('reflection-text').oninput = e => {
-  localStorage.setItem('refl_' + dateStr(currentDate), e.target.value);
-};
 
 init();
 </script>
