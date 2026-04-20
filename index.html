@@ -10,10 +10,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>ToDo App</title>
 <style>
-/* カスタムテーマカラーの変数を用意 */
 :root { 
   --section-opacity: 0.85; 
-  --accent-color: #ec4899; /* 初期テーマカラー（ピンク系） */
+  --accent-color: #4a90e2; /* 初期テーマカラー（水色） */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -28,7 +27,6 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   display: flex; flex-direction: column; gap: 10px;
 }
 
-/* モザイク（blur）を 1px にして、背景をはっきり見えるようにしました */
 .card { 
   background: rgba(255,255,255, var(--section-opacity)); backdrop-filter: blur(1px); -webkit-backdrop-filter: blur(1px);
   border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); transition: background 0.3s;
@@ -43,8 +41,6 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .card-title { font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; text-transform: uppercase; letter-spacing: 1px; }
 
 .task-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
-
-/* チェックボックスの色もテーマカラーに連動 */
 .cb { width: 22px; height: 22px; accent-color: var(--accent-color); transition: 0.3s; }
 .task-text { flex: 1; font-size: 15px; }
 .task-text.done { text-decoration: line-through; color: #aaa; }
@@ -56,8 +52,6 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
 .add-area { display: flex; gap: 8px; padding: 10px 15px; }
 .add-area input { flex: 1; background: rgba(0,0,0,0.05); border: none; border-radius: 10px; padding: 10px; font-size: 15px; outline: none; }
-
-/* 追加ボタンの色もテーマカラーに連動 */
 .add-area button { background: var(--accent-color); color: white; border: none; border-radius: 10px; padding: 0 15px; font-weight: 700; transition: 0.3s; }
 
 .reflection-box { width: calc(100% - 30px); height: 80px; background: rgba(255,255,255,0.3); border: none; border-radius: 12px; padding: 10px; font-size: 14px; margin: 8px 15px 15px; outline: none; resize: none; }
@@ -65,8 +59,6 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .settings-grid { padding: 15px; display: grid; gap: 15px; }
 .label { font-size: 11px; font-weight: 800; color: #777; margin-bottom: 8px; display: block; }
 .color-list { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-
-/* 選択中枠の色もテーマカラーに連動 */
 .swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background-size: cover; position: relative; transition: 0.2s; }
 .swatch.active { border-color: var(--accent-color); transform: scale(1.1); }
 .op-btn-group { display: flex; gap: 10px; }
@@ -187,22 +179,20 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
 <script>
 let current = new Date();
-const storageKey = 'todo_final_v16'; // バージョンアップ
+const storageKey = 'todo_final_v17'; // バージョンアップ
 
-// プリセット背景と、それぞれに対応するテーマカラー（ボタンの色など）を設定
 const presets = [
-  { bg: 'linear-gradient(135deg,#fde8f0,#fbc8d8)', color: '#ec4899' }, // ピンク
-  { bg: 'linear-gradient(135deg,#fef9c3,#fde68a)', color: '#eab308' }, // イエロー
-  { bg: 'linear-gradient(135deg,#d1fae5,#a7f3d0)', color: '#10b981' }, // エメラルドグリーン
-  { bg: 'linear-gradient(135deg,#dbeafe,#bfdbfe)', color: '#3b82f6' }, // ブルー
-  { bg: 'linear-gradient(135deg,#ede9fe,#ddd6fe)', color: '#8b5cf6' }, // パープル
-  { bg: 'linear-gradient(135deg,#ffedd5,#fed7aa)', color: '#f97316' }, // オレンジ
-  { bg: 'linear-gradient(135deg,#fce7f3,#fbcfe8)', color: '#ec4899' }, // ローズ
-  { bg: 'linear-gradient(135deg,#ecfccb,#d9f99d)', color: '#84cc16' }, // ライム
-  { bg: 'linear-gradient(135deg,#e0f2fe,#bae6fd)', color: '#0ea5e9' }  // スカイブルー
+  { bg: 'linear-gradient(135deg,#fde8f0,#fbc8d8)', color: '#ec4899' }, 
+  { bg: 'linear-gradient(135deg,#fef9c3,#fde68a)', color: '#eab308' }, 
+  { bg: 'linear-gradient(135deg,#d1fae5,#a7f3d0)', color: '#10b981' }, 
+  { bg: 'linear-gradient(135deg,#dbeafe,#bfdbfe)', color: '#3b82f6' }, 
+  { bg: 'linear-gradient(135deg,#ede9fe,#ddd6fe)', color: '#8b5cf6' }, 
+  { bg: 'linear-gradient(135deg,#ffedd5,#fed7aa)', color: '#f97316' }, 
+  { bg: 'linear-gradient(135deg,#fce7f3,#fbcfe8)', color: '#ec4899' }, 
+  { bg: 'linear-gradient(135deg,#ecfccb,#d9f99d)', color: '#84cc16' }, 
+  { bg: 'linear-gradient(135deg,#e0f2fe,#bae6fd)', color: '#0ea5e9' }  
 ];
 
-// 大増量した褒め言葉（27種類）
 const praiseMessages = [
   "お疲れ様！", "その調子！", "すごい！", "頑張ったね！", "ナイス！", 
   "次も頑張ろう！", "天才！", "完璧！", "素晴らしい！", "一歩前進！",
@@ -212,7 +202,7 @@ const praiseMessages = [
   "キレキレだね！", "今日も絶好調！"
 ];
 
-let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v15')) || {
+let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v16')) || {
   tasks: [], uploads: [], settings: { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.85 }
 };
 
@@ -326,14 +316,20 @@ function addTask(type) {
 function applySettings() {
   const bg = document.getElementById('bg-layer');
   const s = data.settings;
+  
+  // 背景タイプによるCSS適用
   if (s.bgType === 'image') {
     bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center';
   } else {
     bg.style.background = s.bg; bg.style.backgroundSize = 'cover';
   }
   
-  // テーマカラーをCSS変数に適用（設定がない場合はデフォルト色）
-  document.documentElement.style.setProperty('--accent-color', s.themeColor || '#ec4899');
+  // テーマカラーを適用（画像の場合は必ず初期の水色 #4a90e2 を適用）
+  let appliedColor = s.themeColor || '#4a90e2';
+  if (s.bgType === 'image') {
+    appliedColor = '#4a90e2';
+  }
+  document.documentElement.style.setProperty('--accent-color', appliedColor);
   
   document.documentElement.style.setProperty('--section-opacity', s.op);
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
@@ -345,7 +341,7 @@ function applySettings() {
 function setBg(bg, type, color) { 
   data.settings.bg = bg; 
   data.settings.bgType = type; 
-  data.settings.themeColor = color; // テーマカラーを保存
+  data.settings.themeColor = color; 
   save(); render(); 
 }
 
@@ -373,9 +369,9 @@ function buildSwatches() {
   
   const histList = document.getElementById('history-list'); histList.innerHTML = '';
   (data.uploads || []).forEach(item => {
-    // 過去のデータ（文字のみ）と新しいデータ（画像と色のセット）の両方に対応
     const imgSrc = typeof item === 'string' ? item : item.img;
-    const imgColor = typeof item === 'string' ? '#4a90e2' : item.color;
+    // 過去のデータの場合は水色を設定
+    const imgColor = '#4a90e2';
     
     const div = document.createElement('div');
     div.className = 'swatch' + (data.settings.bg === imgSrc ? ' active' : '');
@@ -458,29 +454,15 @@ canvas.addEventListener('touchend', (e) => {
 
 function closeModal() { document.getElementById('img-modal').classList.remove('show'); currentImgObj = null; }
 
-// 画像の平均色（一番目立つ色）を抽出するAI機能的な計算
-function getAverageColor(sourceCanvas) {
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = 1; 
-  tempCanvas.height = 1;
-  const tempCtx = tempCanvas.getContext('2d');
-  // 画像全体を1ピクセルにギュッと縮小して描画すると、その色が平均色になる
-  tempCtx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, 0, 0, 1, 1);
-  const pixel = tempCtx.getImageData(0, 0, 1, 1).data;
-  return `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
-}
-
 function confirmImage() {
   const trimmedDataUrl = canvas.toDataURL("image/jpeg", 0.6); 
-  // 計算した平均色を取得
-  const extractedColor = getAverageColor(canvas);
+  const defaultImageColor = '#4a90e2'; // 画像の場合は常に水色
   
   if(!data.uploads) data.uploads = [];
-  // 画像と色の両方を保存する
-  data.uploads.unshift({ img: trimmedDataUrl, color: extractedColor });
+  data.uploads.unshift({ img: trimmedDataUrl, color: defaultImageColor });
   if(data.uploads.length > 3) data.uploads.pop();
   
-  setBg(trimmedDataUrl, 'image', extractedColor); 
+  setBg(trimmedDataUrl, 'image', defaultImageColor); 
   closeModal();
 }
 
