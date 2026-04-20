@@ -11,8 +11,8 @@
 <title>ToDo App</title>
 <style>
 :root { 
-  --section-opacity: 0.85; 
-  --accent-color: #4a90e2; /* 初期テーマカラー（水色） */
+  --section-opacity: 0.95; /* デフォルトの透明度を少し白寄りに変更 */
+  --accent-color: #4a90e2; 
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -141,7 +141,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
       <div class="op-btn-group">
         <button id="op-high" class="op-btn" onclick="setOp(0.3)">高い</button>
         <button id="op-mid" class="op-btn" onclick="setOp(0.6)">中</button>
-        <button id="op-low" class="op-btn" onclick="setOp(0.85)">低い</button>
+        <button id="op-low" class="op-btn" onclick="setOp(0.95)">低い</button>
       </div>
     </div>
   </div>
@@ -179,7 +179,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
 <script>
 let current = new Date();
-const storageKey = 'todo_final_v17'; // バージョンアップ
+const storageKey = 'todo_final_v19'; 
 
 const presets = [
   { bg: 'linear-gradient(135deg,#fde8f0,#fbc8d8)', color: '#ec4899' }, 
@@ -202,8 +202,8 @@ const praiseMessages = [
   "キレキレだね！", "今日も絶好調！"
 ];
 
-let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v16')) || {
-  tasks: [], uploads: [], settings: { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.85 }
+let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v18')) || {
+  tasks: [], uploads: [], settings: { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95 }
 };
 
 let currentArchFilter = 'day';
@@ -249,12 +249,7 @@ function render() {
       const isDone = !!t.completedAt;
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
       cb.onchange = () => {
-        if (cb.checked) {
-          t.completedAt = new Date().toISOString();
-          showToast();
-        } else {
-          t.completedAt = null;
-        }
+        if (cb.checked) { t.completedAt = new Date().toISOString(); showToast(); } else { t.completedAt = null; }
         save(); render();
         if(document.getElementById('archive-modal').classList.contains('show')) renderArchive();
       };
@@ -285,7 +280,6 @@ function renderArchive() {
   const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
   let completed = data.tasks.filter(t => t.completedAt);
   completed.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
   const todayStr = getDStr(new Date());
   completed = completed.filter(t => {
     const taskDate = t.createdAt;
@@ -296,7 +290,6 @@ function renderArchive() {
     if (currentArchFilter === 'month') return d.getMonth() === new Date().getMonth();
     return true;
   });
-
   if(!completed.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">該当する完了タスクはありません</div>`; return; }
   completed.forEach(t => {
     const div = document.createElement('div'); div.className = 'task-item';
@@ -317,25 +310,22 @@ function applySettings() {
   const bg = document.getElementById('bg-layer');
   const s = data.settings;
   
-  // 背景タイプによるCSS適用
   if (s.bgType === 'image') {
     bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center';
+    document.documentElement.style.setProperty('--accent-color', '#4a90e2');
   } else {
     bg.style.background = s.bg; bg.style.backgroundSize = 'cover';
+    document.documentElement.style.setProperty('--accent-color', s.themeColor || '#4a90e2');
   }
   
-  // テーマカラーを適用（画像の場合は必ず初期の水色 #4a90e2 を適用）
-  let appliedColor = s.themeColor || '#4a90e2';
-  if (s.bgType === 'image') {
-    appliedColor = '#4a90e2';
-  }
-  document.documentElement.style.setProperty('--accent-color', appliedColor);
-  
+  // 以前の0.85が設定に残っている場合は0.95に自動変換する
+  if (s.op === 0.85) { s.op = 0.95; }
+
   document.documentElement.style.setProperty('--section-opacity', s.op);
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
   if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
   if (s.op === 0.6) document.getElementById('op-mid').classList.add('active');
-  if (s.op === 0.85) document.getElementById('op-low').classList.add('active');
+  if (s.op === 0.95) document.getElementById('op-low').classList.add('active');
 }
 
 function setBg(bg, type, color) { 
@@ -370,13 +360,10 @@ function buildSwatches() {
   const histList = document.getElementById('history-list'); histList.innerHTML = '';
   (data.uploads || []).forEach(item => {
     const imgSrc = typeof item === 'string' ? item : item.img;
-    // 過去のデータの場合は水色を設定
-    const imgColor = '#4a90e2';
-    
     const div = document.createElement('div');
     div.className = 'swatch' + (data.settings.bg === imgSrc ? ' active' : '');
     div.style.backgroundImage = `url(${imgSrc})`; div.style.backgroundSize = 'cover';
-    div.onclick = () => setBg(imgSrc, 'image', imgColor);
+    div.onclick = () => setBg(imgSrc, 'image', '#4a90e2');
     histList.appendChild(div);
   });
 }
@@ -384,21 +371,14 @@ function buildSwatches() {
 const canvas = document.getElementById('img-canvas');
 const ctx = canvas.getContext('2d');
 let currentImgObj = null;
-let scale = 1, posX = 0, posY = 0;
-let lastScale = 1, lastPosX = 0, lastPosY = 0;
-let startTouches = [];
+let scale = 1, posX = 0, posY = 0, lastScale = 1, lastPosX = 0, lastPosY = 0, startTouches = [];
 
 function initImageEditor(dataUrl) {
   currentImgObj = new Image();
   currentImgObj.onload = () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     const minScale = Math.max(canvas.width / currentImgObj.naturalWidth, canvas.height / currentImgObj.naturalHeight);
-    scale = lastScale = minScale;
-    posX = lastPosX = 0;
-    posY = lastPosY = 0;
-    
+    scale = lastScale = minScale; posX = lastPosX = 0; posY = lastPosY = 0;
     document.getElementById('img-modal').classList.add('show');
     draw();
   };
@@ -407,62 +387,39 @@ function initImageEditor(dataUrl) {
 
 function draw() {
   if (!currentImgObj) return;
-  const cw = canvas.width;
-  const ch = canvas.height;
-  
+  const cw = canvas.width, ch = canvas.height;
   ctx.clearRect(0, 0, cw, ch);
-  ctx.save();
-  ctx.translate(cw / 2 + posX, ch / 2 + posY);
-  ctx.scale(scale, scale);
-  ctx.drawImage(currentImgObj, -currentImgObj.naturalWidth / 2, -currentImgObj.naturalHeight / 2);
+  ctx.save(); ctx.translate(cw/2 + posX, ch/2 + posY); ctx.scale(scale, scale);
+  ctx.drawImage(currentImgObj, -currentImgObj.naturalWidth/2, -currentImgObj.naturalHeight/2);
   ctx.restore();
 }
 
 canvas.addEventListener('touchstart', e => { e.preventDefault(); startTouches = [...e.touches]; lastPosX=posX; lastPosY=posY; lastScale=scale; }, {passive:false});
 canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  const t = [...e.touches];
-  const cw = canvas.width;
-  const ch = canvas.height;
-
+  e.preventDefault(); const t = [...e.touches], cw = canvas.width, ch = canvas.height;
   if(t.length===1 && startTouches.length===1) {
     posX = lastPosX + (t[0].clientX - startTouches[0].clientX);
     posY = lastPosY + (t[0].clientY - startTouches[0].clientY);
   } else if(t.length===2 && startTouches.length===2) {
-    const dist1 = Math.hypot(startTouches[0].clientX-startTouches[1].clientX, startTouches[0].clientY-startTouches[1].clientY);
-    const dist2 = Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
-    const minScale = Math.max(cw / currentImgObj.naturalWidth, ch / currentImgObj.naturalHeight);
-    scale = Math.max(minScale, Math.min(5, lastScale * (dist2/dist1)));
+    const d1 = Math.hypot(startTouches[0].clientX-startTouches[1].clientX, startTouches[0].clientY-startTouches[1].clientY);
+    const d2 = Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
+    const ms = Math.max(cw/currentImgObj.naturalWidth, ch/currentImgObj.naturalHeight);
+    scale = Math.max(ms, Math.min(5, lastScale * (d2/d1)));
   }
-  
-  const limitX = Math.max(0, (currentImgObj.naturalWidth * scale - cw) / 2);
-  const limitY = Math.max(0, (currentImgObj.naturalHeight * scale - ch) / 2);
-  posX = Math.max(-limitX, Math.min(limitX, posX));
-  posY = Math.max(-limitY, Math.min(limitY, posY));
-  
+  const lx = Math.max(0, (currentImgObj.naturalWidth*scale - cw)/2), ly = Math.max(0, (currentImgObj.naturalHeight*scale - ch)/2);
+  posX = Math.max(-lx, Math.min(lx, posX)); posY = Math.max(-ly, Math.min(ly, posY));
   draw();
 }, {passive:false});
-
-canvas.addEventListener('touchend', (e) => {
-  startTouches = [...e.touches];
-  if (startTouches.length === 0) {
-    lastPosX = posX; lastPosY = posY; lastScale = scale;
-  } else if (startTouches.length === 1) {
-    lastPosX = posX; lastPosY = posY;
-  }
-});
+canvas.addEventListener('touchend', () => { lastPosX = posX; lastPosY = posY; lastScale = scale; });
 
 function closeModal() { document.getElementById('img-modal').classList.remove('show'); currentImgObj = null; }
 
 function confirmImage() {
   const trimmedDataUrl = canvas.toDataURL("image/jpeg", 0.6); 
-  const defaultImageColor = '#4a90e2'; // 画像の場合は常に水色
-  
   if(!data.uploads) data.uploads = [];
-  data.uploads.unshift({ img: trimmedDataUrl, color: defaultImageColor });
+  data.uploads.unshift({ img: trimmedDataUrl, color: '#4a90e2' });
   if(data.uploads.length > 3) data.uploads.pop();
-  
-  setBg(trimmedDataUrl, 'image', defaultImageColor); 
+  setBg(trimmedDataUrl, 'image', '#4a90e2'); 
   closeModal();
 }
 
