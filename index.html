@@ -13,7 +13,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; background: #000; color: #1a1a1a; }
 
-/* 背景レイヤー：全画面 */
+/* 背景レイヤー */
 #bg-layer { position: fixed; inset: 0; background: linear-gradient(135deg,#fde8f0,#fbc8d8); background-size: cover; background-position: center; z-index: -1; transition: background 0.3s; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.05); z-index: 0; pointer-events: none; }
 
@@ -28,7 +28,9 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); 
 }
 
+/* ヘッダー */
 .header { padding: 10px; display: flex; align-items: center; justify-content: space-between; }
+.header-btn { border: none; background: none; font-size: 24px; padding: 5px 15px; cursor: pointer; color: #333; }
 .date-wrap { position: relative; flex: 1; text-align: center; }
 .date-label { font-size: 16px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03); padding: 5px 12px; border-radius: 20px; }
 #date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
@@ -41,6 +43,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .task-text { flex: 1; font-size: 15px; }
 .task-text.done { text-decoration: line-through; color: #aaa; }
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; }
+.date-badge { font-size: 10px; color: #999; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
 
 /* 入力エリア */
 .add-area { display: flex; gap: 8px; padding: 10px 15px; }
@@ -52,17 +55,23 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 /* 設定パネル */
 .settings-grid { padding: 15px; display: grid; gap: 15px; }
 .label { font-size: 11px; font-weight: 800; color: #777; margin-bottom: 8px; display: block; }
-
 .color-list { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background-size: cover; position: relative; }
 .swatch.active { border-color: #4a90e2; transform: scale(1.1); }
-.rainbow { background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); }
-#custom-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-
-/* 透明度ボタン */
 .op-btn-group { display: flex; gap: 10px; }
 .op-btn { flex: 1; height: 45px; border-radius: 12px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 13px; color: #444; }
 .op-btn.active { background: #4a90e2; color: white; }
+
+/* アーカイブモーダル */
+#archive-modal { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 20px; }
+#archive-modal.show { display: flex !important; }
+.archive-card { background: #fff; width: 100%; max-width: 500px; max-height: 85vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.archive-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.archive-header h3 { font-size: 16px; margin: 0; color: #333; }
+.filter-group { display: flex; gap: 10px; padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); background: #fafafa; }
+.flt-btn { flex: 1; padding: 8px; border-radius: 10px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 12px; color: #666; cursor: pointer; }
+.flt-btn.active { background: #4a90e2; color: #fff; }
+#archive-list { overflow-y: auto; flex: 1; padding-bottom: 20px; }
 
 #img-modal.show { display: flex !important; }
 </style>
@@ -74,12 +83,16 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
 <div class="app-container">
   <div class="card header">
-    <button onclick="moveDate(-1)" style="border:none; background:none; font-size:20px; padding:10px;">←</button>
-    <div class="date-wrap">
-      <div class="date-label" id="date-label">日付</div>
-      <input type="date" id="date-picker" onchange="jumpDate(this.value)">
+    <button class="header-btn" onclick="openArchive()">≡</button>
+    <div style="display:flex; align-items:center; flex:1; justify-content:center;">
+      <button onclick="moveDate(-1)" style="border:none; background:none; font-size:18px; padding:10px;">←</button>
+      <div class="date-wrap">
+        <div class="date-label" id="date-label">日付</div>
+        <input type="date" id="date-picker" onchange="jumpDate(this.value)">
+      </div>
+      <button onclick="moveDate(1)" style="border:none; background:none; font-size:18px; padding:10px;">→</button>
     </div>
-    <button onclick="moveDate(1)" style="border:none; background:none; font-size:20px; padding:10px;">→</button>
+    <div style="width:54px;"></div>
   </div>
 
   <div class="card">
@@ -111,9 +124,6 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
       <div class="color-list" id="swatch-list"></div>
       <div class="color-list" id="history-list" style="margin-top:10px;"></div>
     </div>
-
-    <div id="adjust-panel" style="display:none;"></div>
-
     <div>
       <span class="label">パネルの透明度</span>
       <div class="op-btn-group">
@@ -125,46 +135,57 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   </div>
 </div>
 
-<div id="img-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.85);flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+<div id="archive-modal">
+  <div class="archive-card">
+    <div class="archive-header">
+      <h3>過去の完了タスク</h3>
+      <button class="header-btn" onclick="closeArchive()">×</button>
+    </div>
+    <div class="filter-group">
+      <button id="flt-day" class="flt-btn active" onclick="setArchFilter('day')">今日</button>
+      <button id="flt-week" class="flt-btn" onclick="setArchFilter('week')">過去7日間</button>
+      <button id="flt-month" class="flt-btn" onclick="setArchFilter('month')">今月</button>
+    </div>
+    <div id="archive-list"></div>
+  </div>
+</div>
+
+<div id="img-modal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.85);flex-direction:column;align-items:center;justify-content:center;gap:16px;">
   <div id="img-preview-wrap" style="width:300px;height:300px;overflow:hidden;border-radius:16px;position:relative;background:#111;">
-    <img id="img-preview" src="" alt="" style="position:absolute;width:100%;height:auto;left:0;top:0;transform-origin:center top;">
+    <img id="img-preview" src="" style="position:absolute;width:100%;height:auto;left:0;top:0;transform-origin:center top;">
   </div>
   <div style="width:300px;display:grid;gap:10px;">
-    <div style="display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;"><span style="width:32px">拡大</span><input type="range" id="adj-size" min="100" max="300" value="100" oninput="updatePreview()" style="flex:1;accent-color:#4a90e2;"></div>
-    <div style="display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;"><span style="width:32px">上下</span><input type="range" id="adj-pos" min="0" max="100" value="50" oninput="updatePreview()" style="flex:1;accent-color:#4a90e2;"></div>
+    <div style="display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;"><span style="width:32px">拡大</span><input type="range" id="adj-size" min="100" max="300" oninput="updatePreview()" style="flex:1;accent-color:#4a90e2;"></div>
+    <div style="display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;"><span style="width:32px">上下</span><input type="range" id="adj-pos" min="0" max="100" oninput="updatePreview()" style="flex:1;accent-color:#4a90e2;"></div>
   </div>
   <div style="display:flex;gap:10px;width:300px;">
-    <button onclick="closeModal()" style="flex:1;padding:12px;border-radius:12px;border:none;font-weight:700;font-size:14px;background:rgba(255,255,255,0.15);color:#fff;cursor:pointer;">キャンセル</button>
-    <button onclick="confirmImage()" style="flex:1;padding:12px;border-radius:12px;border:none;font-weight:700;font-size:14px;background:#4a90e2;color:#fff;cursor:pointer;">確定</button>
+    <button onclick="closeModal()" style="flex:1;padding:12px;border-radius:12px;border:none;background:rgba(255,255,255,0.15);color:#fff;">キャンセル</button>
+    <button onclick="confirmImage()" style="flex:1;padding:12px;border-radius:12px;border:none;background:#4a90e2;color:#fff;">確定</button>
   </div>
 </div>
 
 <script>
 let current = new Date();
-const storageKey = 'todo_final_v8';
+const storageKey = 'todo_final_v10'; // 新バージョン
 const presets = [
-  'linear-gradient(135deg,#fde8f0,#fbc8d8)',
-  'linear-gradient(135deg,#fef9c3,#fde68a)',
-  'linear-gradient(135deg,#d1fae5,#a7f3d0)',
-  'linear-gradient(135deg,#dbeafe,#bfdbfe)',
-  'linear-gradient(135deg,#ede9fe,#ddd6fe)',
-  'linear-gradient(135deg,#ffedd5,#fed7aa)',
-  'linear-gradient(135deg,#fce7f3,#fbcfe8)',
-  'linear-gradient(135deg,#ecfccb,#d9f99d)',
-  'linear-gradient(135deg,#e0f2fe,#bae6fd)',
+  'linear-gradient(135deg,#fde8f0,#fbc8d8)', 'linear-gradient(135deg,#fef9c3,#fde68a)',
+  'linear-gradient(135deg,#d1fae5,#a7f3d0)', 'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+  'linear-gradient(135deg,#ede9fe,#ddd6fe)', 'linear-gradient(135deg,#ffedd5,#fed7aa)',
+  'linear-gradient(135deg,#fce7f3,#fbcfe8)', 'linear-gradient(135deg,#ecfccb,#d9f99d)',
+  'linear-gradient(135deg,#e0f2fe,#bae6fd)'
 ];
 
-// v7のデータがあれば引き継ぐように設定
-let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v7')) || {
-  tasks: [],
-  uploads: [],
-  settings: { bg: presets[0], bgType: 'css', size: 100, pos: 50, op: 0.85 }
+// データ読み込み（以前のバージョンからも引き継ぐ）
+let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v9')) || {
+  tasks: [], uploads: [], settings: { bg: presets[0], bgType: 'css', size: 100, pos: 50, op: 0.85 }
 };
 
 let pendingImageData = null;
+let currentArchFilter = 'day';
 
 function save() { localStorage.setItem(storageKey, JSON.stringify(data)); }
 function getDStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function formatTime(isoStr) { const d = new Date(isoStr); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 
 function render() {
   const dStr = getDStr(current);
@@ -177,37 +198,23 @@ function render() {
 
     const visible = data.tasks.filter(t => {
       if (t.type !== type) return false;
+      const createdDate = t.createdAt.slice(0, 10);
       
-      // 古いデータの互換性補正
-      if (!t.createdAt) t.createdAt = '2000-01-01'; 
-      if (t.completedAt === undefined) {
-        if (t.doneDates && t.doneDates.length > 0) {
-          t.completedAt = t.doneDates[t.doneDates.length - 1]; // 最後の完了日を反映
-        } else {
-          t.completedAt = null;
-        }
-      }
+      // まだ来ていない日付のタスクは表示しない
+      if (dStr < createdDate) return false;
 
-      // 1. タスクを追加した日より前には表示しない
-      if (dStr < t.createdAt) return false;
-
-      // 2. 完了している場合
+      // 【修正ポイント】完了済みでも、その完了した当日まではメイン画面に残す
       if (t.completedAt) {
-        // 完了した日の翌日以降は完全に消える
-        if (dStr > t.completedAt) return false;
-        // 追加した日から完了した日までは表示させる
-        return true;
+        const compDate = t.completedAt.slice(0, 10);
+        if (dStr > compDate) return false; // 完了した翌日からは消える
       }
-
-      // 未完了なら、追加した日以降ずっと表示させる
       return true;
     });
 
     visible.forEach(t => {
-      const isDone = t.completedAt !== null;
-
       const div = document.createElement('div');
       div.className = 'task-item';
+      const isDone = !!t.completedAt;
 
       const cb = document.createElement('input');
       cb.type = 'checkbox';
@@ -215,16 +222,16 @@ function render() {
       cb.checked = isDone;
       cb.addEventListener('change', () => {
         if (cb.checked) {
-          t.completedAt = dStr; // 現在表示している日を完了日に設定
+          t.completedAt = new Date().toISOString(); // 今この瞬間を完了時間に
         } else {
-          t.completedAt = null; // チェックを外すと未完了に戻る
+          t.completedAt = null; // 未完了に戻す
         }
         save();
-        render(); // すぐに画面を更新
+        render(); // メイン画面を更新（車線が入る）
+        if(document.getElementById('archive-modal').classList.contains('show')) renderArchive();
       });
 
       const span = document.createElement('span');
-      // 完了している場合は車線を引く（追加日〜完了日まで）
       span.className = 'task-text' + (isDone ? ' done' : '');
       span.textContent = t.text;
 
@@ -243,19 +250,50 @@ function render() {
   buildSwatches();
 }
 
+// アーカイブ関連
+function openArchive() { document.getElementById('archive-modal').classList.add('show'); renderArchive(); }
+function closeArchive() { document.getElementById('archive-modal').classList.remove('show'); }
+function setArchFilter(f) { 
+  currentArchFilter = f; 
+  document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('flt-'+f).classList.add('active');
+  renderArchive(); 
+}
+
+function renderArchive() {
+  const listEl = document.getElementById('archive-list');
+  listEl.innerHTML = '';
+  let completed = data.tasks.filter(t => t.completedAt);
+  completed.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt)); // 完了した順（新しいのが上）
+
+  const now = new Date();
+  completed = completed.filter(t => {
+    const d = new Date(t.completedAt);
+    if (currentArchFilter === 'day') return d.toDateString() === now.toDateString();
+    if (currentArchFilter === 'week') return (now - d) / (1000 * 60 * 60 * 24) <= 7;
+    if (currentArchFilter === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    return true;
+  });
+
+  if(!completed.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">履歴がありません</div>`; return; }
+
+  completed.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'task-item';
+    div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${t.text}</span><span class="date-badge">${formatTime(t.completedAt)}</span><button class="del-btn">×</button>`;
+    div.querySelector('.cb').onchange = () => { t.completedAt = null; save(); render(); renderArchive(); };
+    div.querySelector('.del-btn').onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); renderArchive(); render(); };
+    listEl.appendChild(div);
+  });
+}
+
+// 共通機能
 function addTask(type) {
   const input = document.getElementById('input-' + type);
   if (!input.value.trim()) return;
-  // 追加した日（現在カレンダーで表示している日）を記録
-  data.tasks.push({ 
-    text: input.value.trim(), 
-    type: type, 
-    createdAt: getDStr(current), 
-    completedAt: null 
-  });
+  data.tasks.push({ text: input.value.trim(), type: type, createdAt: getDStr(current), completedAt: null });
   input.value = ''; save(); render();
 }
-
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
 function jumpDate(v) { if (!v) return; current = new Date(v.replace(/-/g, '/')); render(); }
 
@@ -263,15 +301,9 @@ function applySettings() {
   const bg = document.getElementById('bg-layer');
   const s = data.settings;
   if (s.bgType === 'image') {
-    bg.style.backgroundImage = `url(${s.bg})`;
-    bg.style.backgroundSize = `${s.size}%`;
-    bg.style.backgroundPosition = `center ${s.pos}%`;
-    document.getElementById('adjust-panel').style.display = 'none';
+    bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = `${s.size}%`; bg.style.backgroundPosition = `center ${s.pos}%`;
   } else {
-    // 【バグ修正】ここで backgroundImage = 'none' をしていたのを削除しました
-    bg.style.background = s.bg;
-    bg.style.backgroundSize = 'cover';
-    document.getElementById('adjust-panel').style.display = 'none';
+    bg.style.background = s.bg; bg.style.backgroundSize = 'cover';
   }
   document.documentElement.style.setProperty('--section-opacity', s.op);
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
@@ -280,11 +312,7 @@ function applySettings() {
   if (s.op === 0.85) document.getElementById('op-low').classList.add('active');
 }
 
-function setBg(bg, type) {
-  data.settings.bg = bg; data.settings.bgType = type;
-  save(); render();
-}
-
+function setBg(bg, type) { data.settings.bg = bg; data.settings.bgType = type; save(); render(); }
 function setOp(v) { data.settings.op = v; save(); render(); }
 
 function buildSwatches() {
@@ -293,75 +321,50 @@ function buildSwatches() {
   presets.forEach(p => {
     const div = document.createElement('div');
     div.className = 'swatch' + (data.settings.bg === p && data.settings.bgType === 'css' ? ' active' : '');
-    div.style.background = p;
-    div.onclick = () => setBg(p, 'css');
+    div.style.background = p; div.onclick = () => setBg(p, 'css');
     list.appendChild(div);
   });
+  const up = document.createElement('label');
+  up.className = 'swatch'; up.style.border = '1.5px dashed #aaa';
+  up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:18px">＋</span><input type="file" accept="image/*" style="display:none">`;
+  up.querySelector('input').onchange = (e) => {
+    const r = new FileReader();
+    r.onload = (ev) => {
+      pendingImageData = ev.target.result;
+      document.getElementById('img-preview').src = pendingImageData;
+      document.getElementById('adj-size').value = 100; document.getElementById('adj-pos').value = 50;
+      document.getElementById('img-modal').classList.add('show');
+    };
+    r.readAsDataURL(e.target.files[0]);
+  };
+  list.appendChild(up);
 
-  // アップロードボタン
-  const uploadLabel = document.createElement('label');
-  uploadLabel.className = 'swatch';
-  uploadLabel.style.border = '1.5px dashed #aaa';
-  uploadLabel.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:18px">＋</span><input type="file" accept="image/*" style="display:none">`;
-  uploadLabel.querySelector('input').addEventListener('change', onFileSelect);
-  list.appendChild(uploadLabel);
-
-  // 保存済み画像スウォッチ
   const histList = document.getElementById('history-list');
   histList.innerHTML = '';
   (data.uploads || []).forEach(u => {
     const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === u.data && data.settings.bgType === 'image' ? ' active' : '');
-    div.style.backgroundImage = `url(${u.data})`;
-    div.style.backgroundSize = `${u.size}%`;
-    div.style.backgroundPosition = `center ${u.pos}%`;
+    div.className = 'swatch' + (data.settings.bg === u.data ? ' active' : '');
+    div.style.backgroundImage = `url(${u.data})`; div.style.backgroundSize = `${u.size}%`; div.style.backgroundPosition = `center ${u.pos}%`;
     div.onclick = () => { data.settings.size = u.size; data.settings.pos = u.pos; setBg(u.data, 'image'); };
     histList.appendChild(div);
   });
 }
 
-// 画像アップロード→モーダル
-function onFileSelect(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    pendingImageData = ev.target.result;
-    const img = document.getElementById('img-preview');
-    img.src = pendingImageData;
-    document.getElementById('adj-size').value = 100;
-    document.getElementById('adj-pos').value = 50;
-    img.onload = updatePreview;
-    document.getElementById('img-modal').classList.add('show');
-  };
-  reader.readAsDataURL(file);
-}
-
 function updatePreview() {
-  const size = document.getElementById('adj-size').value;
-  const pos = document.getElementById('adj-pos').value;
-  const img = document.getElementById('img-preview');
-  const wrap = document.getElementById('img-preview-wrap');
-  const scale = size / 100;
-  const imgH = img.naturalHeight * (wrap.offsetWidth / img.naturalWidth) * scale;
+  const size = document.getElementById('adj-size').value, pos = document.getElementById('adj-pos').value;
+  const img = document.getElementById('img-preview'), wrap = document.getElementById('img-preview-wrap');
+  const scale = size / 100, imgH = img.naturalHeight * (wrap.offsetWidth / img.naturalWidth) * scale;
   const maxOffset = Math.max(0, imgH - wrap.offsetHeight);
-  img.style.transform = `scale(${scale})`;
-  img.style.transformOrigin = 'center top';
-  img.style.top = `-${(pos / 100) * maxOffset}px`;
-  img.style.width = '100%';
+  img.style.transform = `scale(${scale})`; img.style.top = `-${(pos / 100) * maxOffset}px`; img.style.width = '100%';
 }
-
-function closeModal() { document.getElementById('img-modal').classList.remove('show'); pendingImageData = null; }
-
+function closeModal() { document.getElementById('img-modal').classList.remove('show'); }
 function confirmImage() {
-  if (!pendingImageData) return;
-  const size = parseInt(document.getElementById('adj-size').value);
-  const pos = parseInt(document.getElementById('adj-pos').value);
+  const size = parseInt(document.getElementById('adj-size').value), pos = parseInt(document.getElementById('adj-pos').value);
   if (!data.uploads) data.uploads = [];
   data.uploads.unshift({ data: pendingImageData, size, pos });
   if (data.uploads.length > 3) data.uploads = data.uploads.slice(0, 3);
   data.settings.size = size; data.settings.pos = pos;
-  setBg(pendingImageData, 'image');
-  closeModal();
+  setBg(pendingImageData, 'image'); closeModal();
 }
 
 document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_' + getDStr(current), e.target.value); };
