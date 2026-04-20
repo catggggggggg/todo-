@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MyToDo">
 <link rel="apple-touch-icon" href="icon.png">
-<title>ToDo App Ultimate</title>
+<title>ToDo App Immersion</title>
 <style>
 :root { --section-opacity: 0.85; }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -29,10 +29,11 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 }
 
 /* ヘッダー */
-.header { padding: 10px; display: flex; align-items: center; justify-content: space-between; }
-.header-btn { border: none; background: none; font-size: 24px; padding: 5px 15px; cursor: pointer; color: #333; }
+.header { padding: 10px; display: flex; align-items: center; justify-content: space-between; gap:5px; }
+.header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; }
+.today-reset { border: none; background: #4a90e2; color: #fff; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 12px; white-space: nowrap; }
 .date-wrap { position: relative; flex: 1; text-align: center; }
-.date-label { font-size: 16px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03); padding: 5px 12px; border-radius: 20px; }
+.date-label { font-size: 15px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03); padding: 5px 10px; border-radius: 20px; width: 100%; justify-content: center; }
 #date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
 .card-title { font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; text-transform: uppercase; letter-spacing: 1px; }
@@ -44,6 +45,10 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .task-text.done { text-decoration: line-through; color: #aaa; }
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; }
 .date-badge { font-size: 10px; color: #999; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+
+/* メッセージ（トースト） */
+#toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 25px; font-size: 14px; font-weight: 800; opacity: 0; transition: 0.3s; z-index: 5000; pointer-events: none; }
+#toast.show { opacity: 1; bottom: 120px; }
 
 /* 入力エリア */
 .add-area { display: flex; gap: 8px; padding: 10px 15px; }
@@ -73,7 +78,12 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .flt-btn.active { background: #4a90e2; color: #fff; }
 #archive-list { overflow-y: auto; flex: 1; padding-bottom: 20px; }
 
+/* 画像編集モーダル */
+#img-modal { display: none; position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,0.85); flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
 #img-modal.show { display: flex !important; }
+#img-canvas { width: 300px; height: 300px; border-radius: 16px; background: #111; touch-action: none; }
+.modal-btns { display: flex; gap: 10px; width: 300px; }
+.modal-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 700; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -84,15 +94,13 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 <div class="app-container">
   <div class="card header">
     <button class="header-btn" onclick="openArchive()">≡</button>
-    <div style="display:flex; align-items:center; flex:1; justify-content:center;">
-      <button onclick="moveDate(-1)" style="border:none; background:none; font-size:18px; padding:10px;">←</button>
-      <div class="date-wrap">
-        <div class="date-label" id="date-label">日付</div>
-        <input type="date" id="date-picker" onchange="jumpDate(this.value)">
-      </div>
-      <button onclick="moveDate(1)" style="border:none; background:none; font-size:18px; padding:10px;">→</button>
+    <button onclick="moveDate(-1)" style="border:none; background:none; font-size:18px;">←</button>
+    <div class="date-wrap">
+      <div class="date-label" id="date-label">日付</div>
+      <input type="date" id="date-picker" onchange="jumpDate(this.value)">
     </div>
-    <div style="width:54px;"></div>
+    <button onclick="moveDate(1)" style="border:none; background:none; font-size:18px;">→</button>
+    <button class="today-reset" onclick="goToday()">今日</button>
   </div>
 
   <div class="card">
@@ -135,6 +143,8 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   </div>
 </div>
 
+<div id="toast"></div>
+
 <div id="archive-modal">
   <div class="archive-card">
     <div class="archive-header">
@@ -150,23 +160,18 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   </div>
 </div>
 
-<div id="img-modal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.85);flex-direction:column;align-items:center;justify-content:center;gap:16px;">
-  <div id="img-preview-wrap" style="width:300px;height:300px;overflow:hidden;border-radius:16px;position:relative;background:#111;">
-    <img id="img-preview" src="" style="position:absolute;width:100%;height:auto;left:0;top:0;transform-origin:center top;">
-  </div>
-  <div style="width:300px;display:grid;gap:10px;">
-    <div style="display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;"><span style="width:32px">拡大</span><input type="range" id="adj-size" min="100" max="300" oninput="updatePreview()" style="flex:1;accent-color:#4a90e2;"></div>
-    <div style="display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;"><span style="width:32px">上下</span><input type="range" id="adj-pos" min="0" max="100" oninput="updatePreview()" style="flex:1;accent-color:#4a90e2;"></div>
-  </div>
-  <div style="display:flex;gap:10px;width:300px;">
-    <button onclick="closeModal()" style="flex:1;padding:12px;border-radius:12px;border:none;background:rgba(255,255,255,0.15);color:#fff;">キャンセル</button>
-    <button onclick="confirmImage()" style="flex:1;padding:12px;border-radius:12px;border:none;background:#4a90e2;color:#fff;">確定</button>
+<div id="img-modal">
+  <canvas id="img-canvas" width="300" height="300"></canvas>
+  <div style="color:#aaa; font-size:11px;">ピンチ・ドラッグで調整</div>
+  <div class="modal-btns">
+    <button class="modal-btn" style="background:rgba(255,255,255,0.1);color:#fff" onclick="closeModal()">戻る</button>
+    <button class="modal-btn" style="background:#4a90e2;color:#fff" onclick="confirmImage()">確定</button>
   </div>
 </div>
 
 <script>
 let current = new Date();
-const storageKey = 'todo_final_v10'; // 新バージョン
+const storageKey = 'todo_final_v12';
 const presets = [
   'linear-gradient(135deg,#fde8f0,#fbc8d8)', 'linear-gradient(135deg,#fef9c3,#fde68a)',
   'linear-gradient(135deg,#d1fae5,#a7f3d0)', 'linear-gradient(135deg,#dbeafe,#bfdbfe)',
@@ -175,17 +180,23 @@ const presets = [
   'linear-gradient(135deg,#e0f2fe,#bae6fd)'
 ];
 
-// データ読み込み（以前のバージョンからも引き継ぐ）
-let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v9')) || {
-  tasks: [], uploads: [], settings: { bg: presets[0], bgType: 'css', size: 100, pos: 50, op: 0.85 }
+const praiseMessages = ["お疲れ様！", "その調子！", "すごい！", "頑張ったね！", "ナイス！", "次も頑張ろう！", "天才！", "完璧！", "素晴らしい！", "一歩前進！"];
+
+let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v11')) || {
+  tasks: [], uploads: [], settings: { bg: presets[0], bgType: 'css', op: 0.85 }
 };
 
-let pendingImageData = null;
 let currentArchFilter = 'day';
 
 function save() { localStorage.setItem(storageKey, JSON.stringify(data)); }
 function getDStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-function formatTime(isoStr) { const d = new Date(isoStr); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.textContent = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
 
 function render() {
   const dStr = getDStr(current);
@@ -195,116 +206,90 @@ function render() {
   ['today', 'weekly'].forEach(type => {
     const listEl = document.getElementById('list-' + type);
     listEl.innerHTML = '';
-
     const visible = data.tasks.filter(t => {
       if (t.type !== type) return false;
-      const createdDate = t.createdAt.slice(0, 10);
-      
-      // まだ来ていない日付のタスクは表示しない
-      if (dStr < createdDate) return false;
-
-      // 【修正ポイント】完了済みでも、その完了した当日まではメイン画面に残す
-      if (t.completedAt) {
-        const compDate = t.completedAt.slice(0, 10);
-        if (dStr > compDate) return false; // 完了した翌日からは消える
-      }
-      return true;
+      const targetDate = t.createdAt; // タスクが作られた（または割り当てられた）日付
+      if (dStr < targetDate) return false;
+      if (t.completedAt && dStr > targetDate) return false; // 完了済みかつ、表示日がその日を過ぎていれば非表示
+      if (!t.completedAt && dStr > targetDate && type === 'today') return true; // 未完了なら過去分も今日分に繰り越し表示
+      return dStr === targetDate;
     });
 
     visible.forEach(t => {
       const div = document.createElement('div');
       div.className = 'task-item';
       const isDone = !!t.completedAt;
-
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.className = 'cb';
-      cb.checked = isDone;
-      cb.addEventListener('change', () => {
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
+      cb.onchange = () => {
         if (cb.checked) {
-          t.completedAt = new Date().toISOString(); // 今この瞬間を完了時間に
+          t.completedAt = new Date().toISOString();
+          showToast();
         } else {
-          t.completedAt = null; // 未完了に戻す
+          t.completedAt = null;
         }
-        save();
-        render(); // メイン画面を更新（車線が入る）
+        save(); render();
         if(document.getElementById('archive-modal').classList.contains('show')) renderArchive();
-      });
-
-      const span = document.createElement('span');
-      span.className = 'task-text' + (isDone ? ' done' : '');
-      span.textContent = t.text;
-
-      const del = document.createElement('button');
-      del.className = 'del-btn';
-      del.textContent = '×';
+      };
+      const span = document.createElement('span'); span.className = 'task-text' + (isDone ? ' done' : ''); span.textContent = t.text;
+      const del = document.createElement('button'); del.className = 'del-btn'; del.textContent = '×';
       del.onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
-
-      div.appendChild(cb); div.appendChild(span); div.appendChild(del);
-      listEl.appendChild(div);
+      div.appendChild(cb); div.appendChild(span); div.appendChild(del); listEl.appendChild(div);
     });
   });
-
   document.getElementById('reflection').value = localStorage.getItem('refl_' + dStr) || '';
-  applySettings();
-  buildSwatches();
+  applySettings(); buildSwatches();
 }
 
-// アーカイブ関連
+function goToday() { current = new Date(); render(); }
+function moveDate(n) { current.setDate(current.getDate() + n); render(); }
+function jumpDate(v) { if (!v) return; current = new Date(v.replace(/-/g, '/')); render(); }
+
 function openArchive() { document.getElementById('archive-modal').classList.add('show'); renderArchive(); }
 function closeArchive() { document.getElementById('archive-modal').classList.remove('show'); }
 function setArchFilter(f) { 
-  currentArchFilter = f; 
-  document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('flt-'+f).classList.add('active');
-  renderArchive(); 
+  currentArchFilter = f; document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('flt-'+f).classList.add('active'); renderArchive(); 
 }
 
 function renderArchive() {
-  const listEl = document.getElementById('archive-list');
-  listEl.innerHTML = '';
+  const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
   let completed = data.tasks.filter(t => t.completedAt);
-  completed.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt)); // 完了した順（新しいのが上）
+  
+  // ソート：作成日順
+  completed.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-  const now = new Date();
+  const todayStr = getDStr(new Date());
   completed = completed.filter(t => {
-    const d = new Date(t.completedAt);
-    if (currentArchFilter === 'day') return d.toDateString() === now.toDateString();
-    if (currentArchFilter === 'week') return (now - d) / (1000 * 60 * 60 * 24) <= 7;
-    if (currentArchFilter === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    const taskDate = t.createdAt; // タスク作成時の日付で判定
+    if (currentArchFilter === 'day') return taskDate === todayStr;
+    const d = new Date(taskDate.replace(/-/g, '/'));
+    const diffDays = (new Date(todayStr.replace(/-/g, '/')) - d) / (1000 * 60 * 60 * 24);
+    if (currentArchFilter === 'week') return diffDays >= 0 && diffDays <= 7;
+    if (currentArchFilter === 'month') return d.getMonth() === new Date().getMonth();
     return true;
   });
 
-  if(!completed.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">履歴がありません</div>`; return; }
-
+  if(!completed.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">該当する完了タスクはありません</div>`; return; }
   completed.forEach(t => {
-    const div = document.createElement('div');
-    div.className = 'task-item';
-    div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${t.text}</span><span class="date-badge">${formatTime(t.completedAt)}</span><button class="del-btn">×</button>`;
+    const div = document.createElement('div'); div.className = 'task-item';
+    div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${t.text}</span><span class="date-badge">${t.createdAt.replace(/-/g,'/')}</span>`;
     div.querySelector('.cb').onchange = () => { t.completedAt = null; save(); render(); renderArchive(); };
-    div.querySelector('.del-btn').onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); renderArchive(); render(); };
     listEl.appendChild(div);
   });
 }
 
-// 共通機能
 function addTask(type) {
   const input = document.getElementById('input-' + type);
   if (!input.value.trim()) return;
   data.tasks.push({ text: input.value.trim(), type: type, createdAt: getDStr(current), completedAt: null });
   input.value = ''; save(); render();
 }
-function moveDate(n) { current.setDate(current.getDate() + n); render(); }
-function jumpDate(v) { if (!v) return; current = new Date(v.replace(/-/g, '/')); render(); }
 
 function applySettings() {
   const bg = document.getElementById('bg-layer');
   const s = data.settings;
-  if (s.bgType === 'image') {
-    bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = `${s.size}%`; bg.style.backgroundPosition = `center ${s.pos}%`;
-  } else {
-    bg.style.background = s.bg; bg.style.backgroundSize = 'cover';
-  }
+  if (s.bgType === 'image') { bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center'; }
+  else { bg.style.background = s.bg; }
   document.documentElement.style.setProperty('--section-opacity', s.op);
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
   if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
@@ -316,55 +301,78 @@ function setBg(bg, type) { data.settings.bg = bg; data.settings.bgType = type; s
 function setOp(v) { data.settings.op = v; save(); render(); }
 
 function buildSwatches() {
-  const list = document.getElementById('swatch-list');
-  list.innerHTML = '';
+  const list = document.getElementById('swatch-list'); list.innerHTML = '';
   presets.forEach(p => {
     const div = document.createElement('div');
     div.className = 'swatch' + (data.settings.bg === p && data.settings.bgType === 'css' ? ' active' : '');
     div.style.background = p; div.onclick = () => setBg(p, 'css');
     list.appendChild(div);
   });
-  const up = document.createElement('label');
-  up.className = 'swatch'; up.style.border = '1.5px dashed #aaa';
+  const up = document.createElement('label'); up.className = 'swatch'; up.style.border = '1.5px dashed #aaa';
   up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:18px">＋</span><input type="file" accept="image/*" style="display:none">`;
   up.querySelector('input').onchange = (e) => {
-    const r = new FileReader();
-    r.onload = (ev) => {
-      pendingImageData = ev.target.result;
-      document.getElementById('img-preview').src = pendingImageData;
-      document.getElementById('adj-size').value = 100; document.getElementById('adj-pos').value = 50;
-      document.getElementById('img-modal').classList.add('show');
-    };
-    r.readAsDataURL(e.target.files[0]);
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => { initImageEditor(ev.target.result); };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
   list.appendChild(up);
-
-  const histList = document.getElementById('history-list');
-  histList.innerHTML = '';
-  (data.uploads || []).forEach(u => {
+  const histList = document.getElementById('history-list'); histList.innerHTML = '';
+  (data.uploads || []).forEach(img => {
     const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === u.data ? ' active' : '');
-    div.style.backgroundImage = `url(${u.data})`; div.style.backgroundSize = `${u.size}%`; div.style.backgroundPosition = `center ${u.pos}%`;
-    div.onclick = () => { data.settings.size = u.size; data.settings.pos = u.pos; setBg(u.data, 'image'); };
+    div.className = 'swatch' + (data.settings.bg === img ? ' active' : '');
+    div.style.backgroundImage = `url(${img})`; div.style.backgroundSize = 'cover';
+    div.onclick = () => setBg(img, 'image');
     histList.appendChild(div);
   });
 }
 
-function updatePreview() {
-  const size = document.getElementById('adj-size').value, pos = document.getElementById('adj-pos').value;
-  const img = document.getElementById('img-preview'), wrap = document.getElementById('img-preview-wrap');
-  const scale = size / 100, imgH = img.naturalHeight * (wrap.offsetWidth / img.naturalWidth) * scale;
-  const maxOffset = Math.max(0, imgH - wrap.offsetHeight);
-  img.style.transform = `scale(${scale})`; img.style.top = `-${(pos / 100) * maxOffset}px`; img.style.width = '100%';
+// 画像編集 (Canvas)
+const canvas = document.getElementById('img-canvas');
+const ctx = canvas.getContext('2d');
+let currentImgObj = null, scale = 1, posX = 0, posY = 0, lastScale = 1, lastPosX = 0, lastPosY = 0, startTouches = [];
+
+function initImageEditor(dataUrl) {
+  currentImgObj = new Image();
+  currentImgObj.onload = () => {
+    const minScale = Math.max(300/currentImgObj.naturalWidth, 300/currentImgObj.naturalHeight);
+    scale = lastScale = minScale; posX = lastPosX = 0; posY = lastPosY = 0;
+    document.getElementById('img-modal').classList.add('show');
+    draw();
+  };
+  currentImgObj.src = dataUrl;
 }
+function draw() {
+  if(!currentImgObj) return;
+  ctx.clearRect(0,0,300,300);
+  ctx.save();
+  ctx.translate(150 + posX, 150 + posY);
+  ctx.scale(scale, scale);
+  ctx.drawImage(currentImgObj, -currentImgObj.naturalWidth/2, -currentImgObj.naturalHeight/2);
+  ctx.restore();
+}
+canvas.addEventListener('touchstart', e => { e.preventDefault(); startTouches = [...e.touches]; lastPosX=posX; lastPosY=posY; lastScale=scale; }, {passive:false});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = [...e.touches];
+  if(t.length===1 && startTouches.length===1) {
+    posX = lastPosX + (t[0].clientX - startTouches[0].clientX);
+    posY = lastPosY + (t[0].clientY - startTouches[0].clientY);
+  } else if(t.length===2 && startTouches.length===2) {
+    const dist1 = Math.hypot(startTouches[0].clientX-startTouches[1].clientX, startTouches[0].clientY-startTouches[1].clientY);
+    const dist2 = Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
+    scale = Math.max(Math.max(300/currentImgObj.naturalWidth, 300/currentImgObj.naturalHeight), lastScale * (dist2/dist1));
+  }
+  draw();
+}, {passive:false});
 function closeModal() { document.getElementById('img-modal').classList.remove('show'); }
 function confirmImage() {
-  const size = parseInt(document.getElementById('adj-size').value), pos = parseInt(document.getElementById('adj-pos').value);
-  if (!data.uploads) data.uploads = [];
-  data.uploads.unshift({ data: pendingImageData, size, pos });
-  if (data.uploads.length > 3) data.uploads = data.uploads.slice(0, 3);
-  data.settings.size = size; data.settings.pos = pos;
-  setBg(pendingImageData, 'image'); closeModal();
+  const imgData = canvas.toDataURL("image/jpeg", 0.7);
+  if(!data.uploads) data.uploads = [];
+  data.uploads.unshift(imgData);
+  if(data.uploads.length > 3) data.uploads.pop();
+  setBg(imgData, 'image'); closeModal();
 }
 
 document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_' + getDStr(current), e.target.value); };
