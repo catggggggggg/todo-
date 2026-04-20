@@ -11,7 +11,7 @@
 <title>ToDo App</title>
 <style>
 :root { 
-  --section-opacity: 0.95; /* デフォルトの透明度を少し白寄りに変更 */
+  --section-opacity: 0.95; 
   --accent-color: #4a90e2; 
 }
 
@@ -47,7 +47,14 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; }
 .date-badge { font-size: 10px; color: #999; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
 
-#toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 25px; font-size: 14px; font-weight: 800; opacity: 0; transition: 0.3s; z-index: 5000; pointer-events: none; }
+/* トーストの背景色をテーマカラーに変更 */
+#toast { 
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
+  background: var(--accent-color); color: #fff; 
+  padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 800; 
+  opacity: 0; transition: 0.3s; z-index: 5000; pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
 #toast.show { opacity: 1; bottom: 120px; }
 
 .add-area { display: flex; gap: 8px; padding: 10px 15px; }
@@ -179,7 +186,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
 <script>
 let current = new Date();
-const storageKey = 'todo_final_v19'; 
+const storageKey = 'todo_final_v20'; 
 
 const presets = [
   { bg: 'linear-gradient(135deg,#fde8f0,#fbc8d8)', color: '#ec4899' }, 
@@ -202,7 +209,7 @@ const praiseMessages = [
   "キレキレだね！", "今日も絶好調！"
 ];
 
-let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v18')) || {
+let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v19')) || {
   tasks: [], uploads: [], settings: { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95 }
 };
 
@@ -318,9 +325,6 @@ function applySettings() {
     document.documentElement.style.setProperty('--accent-color', s.themeColor || '#4a90e2');
   }
   
-  // 以前の0.85が設定に残っている場合は0.95に自動変換する
-  if (s.op === 0.85) { s.op = 0.95; }
-
   document.documentElement.style.setProperty('--section-opacity', s.op);
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
   if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
