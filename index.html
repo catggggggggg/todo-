@@ -7,13 +7,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MyToDo">
 <link rel="apple-touch-icon" href="icon.png">
-<title>ToDo App Immersion</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>ToDo App</title>
 <style>
 :root { --section-opacity: 0.85; }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; background: #000; color: #1a1a1a; }
 
-/* 背景レイヤー */
 #bg-layer { position: fixed; inset: 0; background: linear-gradient(135deg,#fde8f0,#fbc8d8); background-size: cover; background-position: center; z-index: -1; transition: background 0.3s; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.05); z-index: 0; pointer-events: none; }
 
@@ -28,7 +28,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); 
 }
 
-/* ヘッダー */
+/* ヘッダー（今日ボタン廃止） */
 .header { padding: 10px; display: flex; align-items: center; justify-content: space-between; gap:5px; }
 .header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; }
 .date-wrap { position: relative; flex: 1; text-align: center; }
@@ -77,7 +77,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .flt-btn.active { background: #4a90e2; color: #fff; }
 #archive-list { overflow-y: auto; flex: 1; padding-bottom: 20px; }
 
-/* 画像編集モーダル（全画面 Canvas） */
+/* 画像編集モーダル（スマホ全画面） */
 #img-modal { 
   display: none; position: fixed; inset: 0; z-index: 3000; background: #000; 
   align-items: center; justify-content: center; overflow: hidden;
@@ -89,12 +89,12 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
   touch-action: none; 
 }
 .editor-overlay {
-  position: absolute; bottom: calc(env(safe-area-inset-bottom) + 20px); left: 50%; 
-  transform: translateX(-50%); width: 300px; display: flex; flex-direction: column; 
-  align-items: center; gap: 15px; z-index: 10;
+  position: absolute; bottom: calc(env(safe-area-inset-bottom) + 30px); left: 50%; 
+  transform: translateX(-50%); width: 90%; max-width: 400px; display: flex; flex-direction: column; 
+  align-items: center; gap: 15px; z-index: 10; pointer-events: none;
 }
-.modal-btns { display: flex; gap: 10px; width: 100%; }
-.modal-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; }
+.modal-btns { display: flex; gap: 15px; width: 100%; pointer-events: auto; }
+.modal-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 </style>
 </head>
 <body>
@@ -111,7 +111,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
       <input type="date" id="date-picker" onchange="jumpDate(this.value)">
     </div>
     <button onclick="moveDate(1)" style="border:none; background:none; font-size:18px;">→</button>
-    <div style="width:24px;"></div> </div>
+    <div style="width:44px;"></div> </div>
 
   <div class="card">
     <div class="card-title">今日やること</div>
@@ -173,17 +173,19 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 <div id="img-modal">
   <canvas id="img-canvas"></canvas>
   <div class="editor-overlay">
-    <div style="color:#fff; font-size:11px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">ピンチ・ドラッグで調整</div>
+    <div style="color:#fff; font-size:14px; font-weight:bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 20px;">
+      ピンチで拡大縮小・ドラッグで移動
+    </div>
     <div class="modal-btns">
-      <button class="modal-btn" style="background:rgba(255,255,255,0.2);color:#fff" onclick="closeModal()">戻る</button>
-      <button class="modal-btn" style="background:#4a90e2;color:#fff" onclick="confirmImage()">確定</button>
+      <button class="modal-btn" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);" onclick="closeModal()">キャンセル</button>
+      <button class="modal-btn" style="background:#4a90e2;color:#fff" onclick="confirmImage()">背景に設定</button>
     </div>
   </div>
 </div>
 
 <script>
 let current = new Date();
-const storageKey = 'todo_final_v13'; // 新バージョン、データリセット
+const storageKey = 'todo_final_v14'; // 古いキャッシュを無視するためにバージョン変更
 const presets = [
   'linear-gradient(135deg,#fde8f0,#fbc8d8)', 'linear-gradient(135deg,#fef9c3,#fde68a)',
   'linear-gradient(135deg,#d1fae5,#a7f3d0)', 'linear-gradient(135deg,#dbeafe,#bfdbfe)',
@@ -194,8 +196,7 @@ const presets = [
 
 const praiseMessages = ["お疲れ様！", "その調子！", "すごい！", "頑張ったね！", "ナイス！", "次も頑張ろう！", "天才！", "完璧！", "素晴らしい！", "一歩前進！"];
 
-// データ読み込み（今回は完全に新規。古いデータは無視する）
-let data = JSON.parse(localStorage.getItem(storageKey)) || {
+let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v13')) || {
   tasks: [], uploads: [], settings: { bg: presets[0], bgType: 'css', op: 0.85 }
 };
 
@@ -205,7 +206,7 @@ function save() {
   try {
     localStorage.setItem(storageKey, JSON.stringify(data)); 
   } catch (e) {
-    alert("LocalStorageの容量を超えました。過去の画像を削除します。");
+    alert("容量オーバーです。古い画像履歴を削除します。");
     if(data.uploads.length > 0) data.uploads.pop();
     save();
   }
@@ -229,10 +230,10 @@ function render() {
     listEl.innerHTML = '';
     const visible = data.tasks.filter(t => {
       if (t.type !== type) return false;
-      const targetDate = t.createdAt; // タスクが作られた（または割り当てられた）日付
+      const targetDate = t.createdAt; 
       if (dStr < targetDate) return false;
-      if (t.completedAt && dStr > targetDate) return false; // 完了済みかつ、表示日がその日を過ぎていれば非表示
-      if (!t.completedAt && dStr > targetDate && type === 'today') return true; // 未完了なら過去分も今日分に繰り越し表示
+      if (t.completedAt && dStr > targetDate) return false; 
+      if (!t.completedAt && dStr > targetDate && type === 'today') return true; 
       return dStr === targetDate;
     });
 
@@ -274,13 +275,11 @@ function setArchFilter(f) {
 function renderArchive() {
   const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
   let completed = data.tasks.filter(t => t.completedAt);
-  
-  // ソート：作成日順
   completed.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   const todayStr = getDStr(new Date());
   completed = completed.filter(t => {
-    const taskDate = t.createdAt; // タスク作成時の日付で判定
+    const taskDate = t.createdAt;
     if (currentArchFilter === 'day') return taskDate === todayStr;
     const d = new Date(taskDate.replace(/-/g, '/'));
     const diffDays = (new Date(todayStr.replace(/-/g, '/')) - d) / (1000 * 60 * 60 * 24);
@@ -298,7 +297,6 @@ function renderArchive() {
   });
 }
 
-// 共通機能
 function addTask(type) {
   const input = document.getElementById('input-' + type);
   if (!input.value.trim()) return;
@@ -309,7 +307,6 @@ function addTask(type) {
 function applySettings() {
   const bg = document.getElementById('bg-layer');
   const s = data.settings;
-  // 画像設定処理をシンプルに（トリミング済み画像なのでそのままcover）
   if (s.bgType === 'image') {
     bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center';
   } else {
@@ -353,7 +350,7 @@ function buildSwatches() {
   });
 }
 
-// === 画像編集機能（全画面 Canvas + タッチ操作） ===
+// === 全画面画像編集機能（座標ズレを修正した完全版） ===
 const canvas = document.getElementById('img-canvas');
 const ctx = canvas.getContext('2d');
 let currentImgObj = null;
@@ -364,13 +361,11 @@ let startTouches = [];
 function initImageEditor(dataUrl) {
   currentImgObj = new Image();
   currentImgObj.onload = () => {
-    // デバイスのピクセル比を取得
-    const dpr = window.devicePixelRatio || 1;
-    // Canvasの内部解像度をデバイス解像度に合わせる
-    canvas.width = window.innerWidth * dpr;
-    canvas.height = window.innerHeight * dpr;
+    // キャンバスをスマホ画面の実寸に合わせる
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    // 初期スケールを計算（画面（Canvas）を完全に覆う最小サイズ）
+    // 画面全体を覆う最小の拡大率を計算
     const minScale = Math.max(canvas.width / currentImgObj.naturalWidth, canvas.height / currentImgObj.naturalHeight);
     scale = lastScale = minScale;
     posX = lastPosX = 0;
@@ -384,14 +379,15 @@ function initImageEditor(dataUrl) {
 
 function draw() {
   if (!currentImgObj) return;
+  const cw = canvas.width;
+  const ch = canvas.height;
   
-  const canvasW = canvas.width;
-  const canvasH = canvas.height;
-  
-  ctx.clearRect(0, 0, canvasW, canvasH);
+  ctx.clearRect(0, 0, cw, ch);
   ctx.save();
-  ctx.translate(canvasW / 2 + posX, canvasH / 2 + posY);
+  // キャンバスの中心を基準にする
+  ctx.translate(cw / 2 + posX, ch / 2 + posY);
   ctx.scale(scale, scale);
+  // 画像を中心に描画
   ctx.drawImage(currentImgObj, -currentImgObj.naturalWidth / 2, -currentImgObj.naturalHeight / 2);
   ctx.restore();
 }
@@ -400,8 +396,8 @@ canvas.addEventListener('touchstart', e => { e.preventDefault(); startTouches = 
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
   const t = [...e.touches];
-  const canvasW = canvas.width;
-  const canvasH = canvas.height;
+  const cw = canvas.width;
+  const ch = canvas.height;
 
   if(t.length===1 && startTouches.length===1) {
     posX = lastPosX + (t[0].clientX - startTouches[0].clientX);
@@ -409,15 +405,16 @@ canvas.addEventListener('touchmove', e => {
   } else if(t.length===2 && startTouches.length===2) {
     const dist1 = Math.hypot(startTouches[0].clientX-startTouches[1].clientX, startTouches[0].clientY-startTouches[1].clientY);
     const dist2 = Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
-    const minScale = Math.max(canvasW / currentImgObj.naturalWidth, canvasH / currentImgObj.naturalHeight);
-    scale = Math.max(minScale, Math.min(3, lastScale * (dist2/dist1)));
+    const minScale = Math.max(cw / currentImgObj.naturalWidth, ch / currentImgObj.naturalHeight);
+    scale = Math.max(minScale, Math.min(5, lastScale * (dist2/dist1))); // 最大5倍まで拡大可能
   }
   
-  // 境界チェック
-  const limitX = Math.max(0, (currentImgObj.naturalWidth * scale - canvasW) / 2);
-  const limitY = Math.max(0, (currentImgObj.naturalHeight * scale - canvasH) / 2);
+  // 画面に余白ができないよう境界で止める
+  const limitX = Math.max(0, (currentImgObj.naturalWidth * scale - cw) / 2);
+  const limitY = Math.max(0, (currentImgObj.naturalHeight * scale - ch) / 2);
   posX = Math.max(-limitX, Math.min(limitX, posX));
   posY = Math.max(-limitY, Math.min(limitY, posY));
+  
   draw();
 }, {passive:false});
 
@@ -433,11 +430,13 @@ canvas.addEventListener('touchend', (e) => {
 function closeModal() { document.getElementById('img-modal').classList.remove('show'); currentImgObj = null; }
 
 function confirmImage() {
-  const trimmedDataUrl = canvas.toDataURL("image/jpeg", 0.5); // 画質落として容量節約
+  // そのままの画面サイズで切り取る
+  const trimmedDataUrl = canvas.toDataURL("image/jpeg", 0.6); 
   if(!data.uploads) data.uploads = [];
   data.uploads.unshift(trimmedDataUrl);
   if(data.uploads.length > 3) data.uploads.pop();
-  setBg(trimmedDataUrl, 'image'); closeModal();
+  setBg(trimmedDataUrl, 'image'); 
+  closeModal();
 }
 
 document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_' + getDStr(current), e.target.value); };
