@@ -75,9 +75,9 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
   display: flex; align-items: center; justify-content: space-between;
 }
 .card-title-left { display: flex; align-items: center; gap: 5px; }
-.edit-btn-title { background: none; border: none; color: #aaa; font-size: 14px; cursor: pointer; padding: 2px; transition: 0.2s; }
+.edit-btn-title { background: none; border: none; color: #aaa; font-size: 14px; cursor: pointer; padding: 4px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 .edit-btn-title:active { transform: scale(0.9); color: var(--accent-color); }
-.del-section-btn { color: #ff8787; font-size: 14px; margin-left: 5px; }
+.del-section-btn { color: #ff5252; margin-left: 5px; } /* より鮮やかな赤色に変更 */
 
 /* セクション追加ボタン */
 .add-section-btn {
@@ -369,13 +369,22 @@ function render() {
   data.sections.forEach(sec => {
     const card = document.createElement('div');
     card.className = 'card';
+    
+    // 🗑の代わりにSVGのゴミ箱アイコンを設定
     card.innerHTML = `
       <div class="card-title">
         <div class="card-title-left">
           <span>${escapeHTML(sec.title)}</span>
           <button class="edit-btn-title" onclick="renameSection('${sec.id}')">✎</button>
         </div>
-        <button class="edit-btn-title del-section-btn" onclick="deleteSection('${sec.id}')">🗑</button>
+        <button class="edit-btn-title del-section-btn" onclick="deleteSection('${sec.id}')">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
       </div>
       <div id="list-${sec.id}"></div>
       <div class="add-area">
@@ -520,7 +529,6 @@ function addTask(secId) {
   input.value = ''; due.value = ''; repeat.value = 'none'; save(); render();
 }
 
-// 修正箇所：ボタンの色付け（activeクラスの付与）を復元しました！
 function applySettings() {
   const bg = document.getElementById('bg-layer');
   const s = data.settings;
@@ -535,7 +543,6 @@ function applySettings() {
   document.documentElement.style.setProperty('--bg-blur', s.blur);
   document.documentElement.style.setProperty('--app-font', s.font);
 
-  // ↓ここから下のハイライト処理を復活させています
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
   if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
   if (s.op === 0.6) document.getElementById('op-mid').classList.add('active');
@@ -580,7 +587,6 @@ function buildSwatches() {
   });
 }
 
-// 修正箇所：画像の拡大縮小・ドラッグ処理も安全のために完全版を復元
 const canvas = document.getElementById('img-canvas'); const ctx = canvas.getContext('2d');
 let currentImgObj = null, scale = 1, posX = 0, posY = 0, lastScale = 1, lastPosX = 0, lastPosY = 0, startTouches = [];
 
