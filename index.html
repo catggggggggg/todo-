@@ -34,7 +34,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
   border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); transition: background 0.3s;
 }
 
-/* ★ 変更箇所：ヘッダーを画面上部に固定するようにしました */
 .header { 
   padding: 10px; 
   display: grid; 
@@ -44,7 +43,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
   position: sticky; 
   top: calc(env(safe-area-inset-top) + 10px); 
   z-index: 100;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* 固定時に浮き出て見えるよう少し影を追加 */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 .header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; grid-column: 1; }
 
@@ -73,18 +72,18 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .date-label { font-size: 15px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); padding: 8px 15px; border-radius: 20px; white-space: nowrap; }
 #date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-/* カードタイトル周り */
 .card-title { 
   font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; 
   text-transform: uppercase; letter-spacing: 1px; 
   display: flex; align-items: center; justify-content: space-between;
 }
 .card-title-left { display: flex; align-items: center; gap: 5px; }
-.edit-btn-title { background: none; border: none; color: #aaa; font-size: 14px; cursor: pointer; padding: 4px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-.edit-btn-title:active { transform: scale(0.9); color: var(--accent-color); }
+
+/* 編集ボタンの共通スタイル */
+.edit-btn-icon { background: none; border: none; color: #aaa; font-size: 14px; cursor: pointer; padding: 4px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+.edit-btn-icon:active { transform: scale(0.9); color: var(--accent-color); }
 .del-section-btn { color: #ff5252; margin-left: 5px; } 
 
-/* セクション追加ボタン */
 .add-section-btn {
   width: 100%; padding: 15px; margin: 5px 0;
   border: 2px dashed rgba(255,255,255,0.6); border-radius: 18px;
@@ -97,11 +96,11 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .task-item { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
 .cb { width: 22px; height: 22px; accent-color: var(--accent-color); transition: 0.3s; flex-shrink: 0; }
 .task-content { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.task-text-container { display: flex; align-items: center; gap: 4px; min-width: 0; flex: 1; }
 .task-text { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-text.done { text-decoration: line-through; color: #aaa; opacity: 0.7; }
 .due-badge { font-size: 10px; font-weight: bold; color: #fff; background: #ff6b6b; padding: 3px 6px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
 .repeat-badge { font-size: 9px; color: #777; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
-.edit-btn { background: none; border: none; color: #999; font-size: 16px; padding: 5px; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; flex-shrink: 0; cursor: pointer; }
 
 #toast { 
@@ -271,9 +270,10 @@ const presets = [
 
 const praiseMessages = ["お疲れ様！", "その調子！", "すごい！", "頑張ったね！", "ナイス！"];
 
-let data = JSON.parse(localStorage.getItem(storageKey)) || { tasks: [], uploads: [], settings: {} };
+let data = JSON.parse(localStorage.getItem(storageKey)) || { tasks: [], uploads: [], settings: {}, sections: [] };
 
-if (!data.sections) {
+// セクションの初期化
+if (data.sections.length === 0) {
   data.sections = [
     { id: 'today', title: "今日やること" },
     { id: 'weekly', title: "今週やること" }
@@ -323,6 +323,15 @@ function deleteSection(id) {
   if (confirm("このリストを削除しますか？")) {
     data.sections = data.sections.filter(s => s.id !== id);
     data.tasks = data.tasks.filter(t => t.type !== id);
+    save(); render();
+  }
+}
+
+// ★ 新機能：タスク名を変更する関数
+function renameTask(task) {
+  const newText = prompt("タスクの内容を変更しますか？", task.text);
+  if (newText !== null && newText.trim() !== "") {
+    task.text = newText.trim();
     save(); render();
   }
 }
@@ -379,9 +388,9 @@ function render() {
       <div class="card-title">
         <div class="card-title-left">
           <span>${escapeHTML(sec.title)}</span>
-          <button class="edit-btn-title" onclick="renameSection('${sec.id}')">✎</button>
+          <button class="edit-btn-icon" onclick="renameSection('${sec.id}')">✎</button>
         </div>
-        <button class="edit-btn-title del-section-btn" onclick="deleteSection('${sec.id}')">
+        <button class="edit-btn-icon del-section-btn" onclick="deleteSection('${sec.id}')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -453,16 +462,31 @@ function render() {
       };
 
       const contentDiv = document.createElement('div'); contentDiv.className = 'task-content';
+      
+      // ★ タスク名と編集ボタンを含むコンテナ
+      const textContainer = document.createElement('div');
+      textContainer.className = 'task-text-container';
+
       const textSpan = document.createElement('span'); 
       textSpan.className = 'task-text' + (isDone ? ' done' : '');
       textSpan.textContent = t.text;
       
+      // タスク用の編集ボタン（鉛筆マーク）
+      const editBtn = document.createElement('button');
+      editBtn.className = 'edit-btn-icon';
+      editBtn.innerHTML = '✎';
+      editBtn.style.opacity = '0.6';
+      editBtn.onclick = () => renameTask(t);
+      
+      textContainer.appendChild(textSpan);
+      textContainer.appendChild(editBtn);
+      
       if (t.repeat !== 'none') {
         const badge = document.createElement('span'); badge.className = 'repeat-badge';
         badge.textContent = t.repeat === 'daily' ? '毎日' : '毎週';
-        textSpan.appendChild(badge);
+        textContainer.appendChild(badge);
       }
-      contentDiv.appendChild(textSpan);
+      contentDiv.appendChild(textContainer);
 
       if(t.dueDate) {
         const due = document.createElement('span'); due.className = 'due-badge';
