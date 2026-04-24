@@ -34,12 +34,17 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
   border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); transition: background 0.3s;
 }
 
+/* ★ 変更箇所：ヘッダーを画面上部に固定するようにしました */
 .header { 
   padding: 10px; 
   display: grid; 
   grid-template-columns: 44px 1fr auto; 
   align-items: center; 
   gap: 5px; 
+  position: sticky; 
+  top: calc(env(safe-area-inset-top) + 10px); 
+  z-index: 100;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* 固定時に浮き出て見えるよう少し影を追加 */
 }
 .header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; grid-column: 1; }
 
@@ -77,7 +82,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .card-title-left { display: flex; align-items: center; gap: 5px; }
 .edit-btn-title { background: none; border: none; color: #aaa; font-size: 14px; cursor: pointer; padding: 4px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 .edit-btn-title:active { transform: scale(0.9); color: var(--accent-color); }
-.del-section-btn { color: #ff5252; margin-left: 5px; } /* より鮮やかな赤色に変更 */
+.del-section-btn { color: #ff5252; margin-left: 5px; } 
 
 /* セクション追加ボタン */
 .add-section-btn {
@@ -370,7 +375,6 @@ function render() {
     const card = document.createElement('div');
     card.className = 'card';
     
-    // 🗑の代わりにSVGのゴミ箱アイコンを設定
     card.innerHTML = `
       <div class="card-title">
         <div class="card-title-left">
