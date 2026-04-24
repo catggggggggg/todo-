@@ -68,7 +68,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .date-label { font-size: 15px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); padding: 8px 15px; border-radius: 20px; white-space: nowrap; }
 #date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-/* カードタイトル周り */
 .card-title { 
   font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; 
   text-transform: uppercase; letter-spacing: 1px; 
@@ -79,7 +78,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .edit-btn-title:active { transform: scale(0.9); color: var(--accent-color); }
 .del-section-btn { color: #ff8787; font-size: 14px; margin-left: 5px; }
 
-/* セクション追加ボタン */
 .add-section-btn {
   width: 100%; padding: 15px; margin: 5px 0;
   border: 2px dashed rgba(255,255,255,0.6); border-radius: 18px;
@@ -87,13 +85,15 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
   font-weight: 800; color: #666; cursor: pointer;
   transition: 0.3s; font-size: 14px;
 }
-.add-section-btn:active { transform: scale(0.98); background: rgba(255,255,255,0.8); }
 
 .task-item { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
 .cb { width: 22px; height: 22px; accent-color: var(--accent-color); transition: 0.3s; flex-shrink: 0; }
 .task-content { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .task-text { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.task-text.done { text-decoration: line-through; color: #aaa; }
+
+/* 取り消し線のスタイル設定 */
+.task-text.done { text-decoration: line-through; color: #aaa; opacity: 0.7; }
+
 .due-badge { font-size: 10px; font-weight: bold; color: #fff; background: #ff6b6b; padding: 3px 6px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
 .repeat-badge { font-size: 9px; color: #777; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
 .edit-btn { background: none; border: none; color: #999; font-size: 16px; padding: 5px; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
@@ -238,11 +238,8 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 <div id="img-modal">
   <canvas id="img-canvas"></canvas>
   <div class="editor-overlay">
-    <div style="color:#fff; font-size:14px; font-weight:bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 20px;">
-      ピンチで拡大縮小・ドラッグで移動
-    </div>
     <div class="modal-btns">
-      <button class="modal-btn" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);" onclick="closeModal()">キャンセル</button>
+      <button class="modal-btn" style="background:rgba(255,255,255,0.2);color:#fff" onclick="closeModal()">キャンセル</button>
       <button class="modal-btn" style="background:var(--accent-color);color:#fff" onclick="confirmImage()">背景に設定</button>
     </div>
   </div>
@@ -268,11 +265,10 @@ const praiseMessages = ["お疲れ様！", "その調子！", "すごい！", "�
 
 let data = JSON.parse(localStorage.getItem(storageKey)) || { tasks: [], uploads: [], settings: {} };
 
-// 旧データからの移行：セクションリストの初期化
 if (!data.sections) {
   data.sections = [
-    { id: 'today', title: data.settings.titleToday || "今日やること" },
-    { id: 'weekly', title: data.settings.titleWeekly || "今週やること" }
+    { id: 'today', title: "今日やること" },
+    { id: 'weekly', title: "今週やること" }
   ];
 }
 
@@ -284,7 +280,7 @@ let currentArchFilter = 'day';
 
 function save() { 
   try { localStorage.setItem(storageKey, JSON.stringify(data)); } 
-  catch (e) { alert("容量オーバーです。古い画像履歴を削除します。"); if(data.uploads.length > 0) data.uploads.pop(); save(); }
+  catch (e) { alert("容量オーバーです。古い画像を削除します。"); if(data.uploads.length > 0) data.uploads.pop(); save(); }
 }
 
 function getDStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
@@ -296,14 +292,12 @@ function getWeekId(dateStr) {
   return getDStr(d);
 }
 
-// セクション関連の機能
 function addSection() {
-  const title = prompt("新しいリストの名前を入力してください:");
+  const title = prompt("リストの名前を入力してください:");
   if (title && title.trim() !== "") {
     const newId = 'sec_' + Date.now();
     data.sections.push({ id: newId, title: title.trim() });
-    save();
-    render();
+    save(); render();
   }
 }
 
@@ -313,17 +307,15 @@ function renameSection(id) {
   const newTitle = prompt("リストの名前を変更しますか？", sec.title);
   if (newTitle !== null && newTitle.trim() !== "") {
     sec.title = newTitle.trim();
-    save();
-    render();
+    save(); render();
   }
 }
 
 function deleteSection(id) {
-  if (confirm("このリストと、含まれるタスクをすべて削除しますか？")) {
+  if (confirm("このリストを削除しますか？")) {
     data.sections = data.sections.filter(s => s.id !== id);
     data.tasks = data.tasks.filter(t => t.type !== id);
-    save();
-    render();
+    save(); render();
   }
 }
 
@@ -337,45 +329,25 @@ function showToast() {
 function toggleSettings() {
   const content = document.getElementById('settings-content');
   const chevron = document.getElementById('settings-chevron');
-  if (content.style.display === 'none') {
-    content.style.display = 'grid';
-    chevron.textContent = '▲';
-    setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 50);
-  } else {
-    content.style.display = 'none';
-    chevron.textContent = '▼';
-  }
+  content.style.display = content.style.display === 'none' ? 'grid' : 'none';
+  chevron.textContent = content.style.display === 'none' ? '▼' : '▲';
 }
 
 function calcStreak() {
   let count = 0;
-  let tempD = new Date();
-  let todayStr = getDStr(tempD);
-  tempD.setDate(tempD.getDate() - 1);
-  let yesterdayStr = getDStr(tempD);
-
+  let todayStr = getDStr(new Date());
+  let yesterdayStr = getDStr(new Date(Date.now() - 86400000));
   let doneDates = new Set();
   data.tasks.forEach(t => {
-    if(t.completedAt) {
-      const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
-      doneDates.add(compDate);
-    }
-    if(t.doneDates) {
-      t.doneDates.forEach(d => doneDates.add(d));
-    }
+    if(t.completedAt) doneDates.add(t.completedAt.split('T')[0]);
+    if(t.doneDates) t.doneDates.forEach(d => doneDates.add(d));
   });
-
-  let currentCheck = todayStr;
-  if (doneDates.has(todayStr)) { count++; currentCheck = yesterdayStr; } 
-  else if (doneDates.has(yesterdayStr)) { currentCheck = yesterdayStr; } 
-  else { document.getElementById('streak-count').textContent = "0"; return; }
-
-  while(true) {
-    if (currentCheck !== todayStr && doneDates.has(currentCheck)) { count++; } 
-    else if (currentCheck !== todayStr) { break; }
-    let prev = new Date(currentCheck.replace(/-/g, '/'));
-    prev.setDate(prev.getDate() - 1);
-    currentCheck = getDStr(prev);
+  let check = doneDates.has(todayStr) ? todayStr : (doneDates.has(yesterdayStr) ? yesterdayStr : null);
+  while(check) {
+    count++;
+    let d = new Date(check.replace(/-/g, '/'));
+    d.setDate(d.getDate() - 1);
+    check = doneDates.has(getDStr(d)) ? getDStr(d) : null;
   }
   document.getElementById('streak-count').textContent = count;
 }
@@ -386,9 +358,8 @@ function render() {
   document.getElementById('date-label').textContent = `${current.getFullYear()}年${current.getMonth()+1}月${current.getDate()}日(${days[current.getDay()]})`;
 
   const container = document.getElementById('sections-container');
-  container.innerHTML = ''; // クリアして再描画
+  container.innerHTML = '';
 
-  // 各セクションのカードを生成
   data.sections.forEach(sec => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -422,35 +393,28 @@ function render() {
     container.appendChild(card);
 
     const listEl = document.getElementById('list-' + sec.id);
-    
-    // このセクションのタスクをフィルタリングして表示
     const visible = data.tasks.filter(t => {
       if (t.type !== sec.id) return false;
-      const createdDate = t.createdAt; 
-      if (dStr < createdDate) return false; 
-      
+      if (dStr < t.createdAt) return false;
       if (t.repeat === 'daily' || t.repeat === 'weekly') return true;
-
-      if (t.completedAt) {
-        const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
-        return dStr >= createdDate && dStr <= compDate;
-      } else {
-        return dStr >= createdDate;
-      }
+      if (t.completedAt) return dStr >= t.createdAt && dStr <= t.completedAt.split('T')[0];
+      return dStr >= t.createdAt;
     });
 
     visible.forEach(t => {
       const div = document.createElement('div');
       div.className = 'task-item';
       
+      // 改良版「完了判定」ロジック：全セクション共通
       let isDone = false;
       if (t.repeat === 'daily') {
         isDone = (t.doneDates || []).includes(dStr);
       } else if (t.repeat === 'weekly') {
-        const currentWeekId = getWeekId(dStr);
-        isDone = (t.doneDates || []).some(date => getWeekId(date) === currentWeekId);
+        const curWeekId = getWeekId(dStr);
+        isDone = (t.doneDates || []).some(date => getWeekId(date) === curWeekId);
       } else {
-        isDone = !!t.completedAt && (t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt) === dStr;
+        // 1回限りのタスク：完了日が設定されていれば、どの日付・どのセクションでも横線を引く
+        isDone = !!t.completedAt;
       }
       
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
@@ -459,118 +423,69 @@ function render() {
           if (t.repeat === 'daily' || t.repeat === 'weekly') {
             if (!t.doneDates) t.doneDates = [];
             if (!t.doneDates.includes(dStr)) t.doneDates.push(dStr);
-          } else {
-            t.completedAt = dStr; 
-          }
+          } else { t.completedAt = dStr; }
           showToast(); 
         } else { 
-          if (t.repeat === 'daily') {
-            t.doneDates = (t.doneDates || []).filter(d => d !== dStr);
-          } else if (t.repeat === 'weekly') {
-            const currentWeekId = getWeekId(dStr);
-            t.doneDates = (t.doneDates || []).filter(d => getWeekId(d) !== currentWeekId);
-          } else {
-            t.completedAt = null; 
-          }
+          if (t.repeat === 'daily') t.doneDates = t.doneDates.filter(d => d !== dStr);
+          else if (t.repeat === 'weekly') {
+            const cw = getWeekId(dStr);
+            t.doneDates = t.doneDates.filter(d => getWeekId(d) !== cw);
+          } else { t.completedAt = null; }
         }
         save(); render();
-        if(document.getElementById('archive-modal').classList.contains('show')) renderArchive();
       };
 
       const contentDiv = document.createElement('div'); contentDiv.className = 'task-content';
-      
-      const textSpan = document.createElement('span'); textSpan.className = 'task-text' + (isDone ? ' done' : '');
+      const textSpan = document.createElement('span'); 
+      // 全セクションで done クラスが適用されるように
+      textSpan.className = 'task-text' + (isDone ? ' done' : '');
       textSpan.textContent = t.text;
       
-      if (t.repeat === 'daily' || t.repeat === 'weekly') {
-        const badge = document.createElement('span');
-        badge.className = 'repeat-badge';
+      if (t.repeat !== 'none') {
+        const badge = document.createElement('span'); badge.className = 'repeat-badge';
         badge.textContent = t.repeat === 'daily' ? '毎日' : '毎週';
         textSpan.appendChild(badge);
       }
-
       contentDiv.appendChild(textSpan);
 
       if(t.dueDate) {
-        const dueSpan = document.createElement('span'); dueSpan.className = 'due-badge';
-        dueSpan.textContent = '期限: ' + t.dueDate.replace(/-/g, '/');
-        contentDiv.appendChild(dueSpan);
+        const due = document.createElement('span'); due.className = 'due-badge';
+        due.textContent = '期限: ' + t.dueDate.replace(/-/g, '/');
+        contentDiv.appendChild(due);
       }
 
-      const editBtn = document.createElement('button');
-      editBtn.className = 'edit-btn';
-      editBtn.innerHTML = '✎';
-      editBtn.title = '編集';
-      editBtn.onclick = () => {
-        const newText = prompt("タスクを編集:", t.text);
-        if(newText !== null && newText.trim() !== "") { t.text = newText.trim(); save(); render(); }
-      };
-
       const del = document.createElement('button'); del.className = 'del-btn'; del.innerHTML = '×';
-      del.title = '削除';
       del.onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
       
-      div.appendChild(cb); 
-      div.appendChild(contentDiv); 
-      div.appendChild(editBtn); 
-      div.appendChild(del); 
+      div.appendChild(cb); div.appendChild(contentDiv); div.appendChild(del); 
       listEl.appendChild(div);
     });
   });
 
   document.getElementById('reflection').value = localStorage.getItem('refl_' + dStr) || '';
-  applySettings(); buildSwatches(); 
-  calcStreak();
+  applySettings(); buildSwatches(); calcStreak();
 }
 
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
-function jumpDate(v) { if (!v) { current = new Date(); } else { current = new Date(v.replace(/-/g, '/')); } render(); }
+function jumpDate(v) { if (v) current = new Date(v.replace(/-/g, '/')); render(); }
 
 function openArchive() { document.getElementById('archive-modal').classList.add('show'); renderArchive(); }
 function closeArchive() { document.getElementById('archive-modal').classList.remove('show'); }
-function setArchFilter(f) { currentArchFilter = f; document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active')); document.getElementById('flt-'+f).classList.add('active'); renderArchive(); }
+function setArchFilter(f) { currentArchFilter = f; renderArchive(); }
 
 function renderArchive() {
   const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
-  
-  let completedEntries = [];
+  let entries = [];
   data.tasks.forEach(t => {
-    if (t.repeat === 'daily' || t.repeat === 'weekly') {
-      (t.doneDates || []).forEach(d => {
-        completedEntries.push({ ...t, archiveDate: d, originalRef: t });
-      });
-    } else if (t.completedAt) {
-      const cDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
-      completedEntries.push({ ...t, archiveDate: cDate, originalRef: t });
-    }
+    if (t.repeat !== 'none') (t.doneDates || []).forEach(d => entries.push({...t, archD: d, ref: t}));
+    else if (t.completedAt) entries.push({...t, archD: t.completedAt, ref: t});
   });
-
-  completedEntries.sort((a, b) => b.archiveDate.localeCompare(a.archiveDate));
-  
-  const todayStr = getDStr(new Date());
-  const filtered = completedEntries.filter(t => {
-    const compDate = t.archiveDate;
-    if (currentArchFilter === 'day') return compDate === todayStr;
-    const d = new Date(compDate.replace(/-/g, '/'));
-    const diffDays = (new Date(todayStr.replace(/-/g, '/')) - d) / (1000 * 60 * 60 * 24);
-    if (currentArchFilter === 'week') return diffDays >= 0 && diffDays <= 7;
-    if (currentArchFilter === 'month') return d.getMonth() === new Date().getMonth();
-    return true;
-  });
-
-  if(!filtered.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">該当する完了タスクはありません</div>`; return; }
-  
-  filtered.forEach(entry => {
-    const t = entry.originalRef;
+  entries.sort((a,b) => b.archD.localeCompare(a.archD)).forEach(e => {
     const div = document.createElement('div'); div.className = 'task-item';
-    const compDateStr = entry.archiveDate.replace(/-/g,'/');
-    div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${escapeHTML(t.text)}</span><span class="due-badge" style="background:#ccc">${compDateStr}完了</span>`;
+    div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${escapeHTML(e.text)}</span><span class="due-badge" style="background:#ccc">${e.archD}完了</span>`;
     div.querySelector('.cb').onchange = () => {
-      if (t.repeat === 'daily' || t.repeat === 'weekly') {
-        t.doneDates = t.doneDates.filter(d => d !== entry.archiveDate);
-      } else {
-        t.completedAt = null;
-      }
+      if (e.ref.repeat !== 'none') e.ref.doneDates = e.ref.doneDates.filter(d => d !== e.archD);
+      else e.ref.completedAt = null;
       save(); render(); renderArchive();
     };
     listEl.appendChild(div);
@@ -579,50 +494,29 @@ function renderArchive() {
 
 function addTask(secId) {
   const input = document.getElementById('input-' + secId);
-  const dueInput = document.getElementById('due-' + secId);
-  const repeatInput = document.getElementById('repeat-' + secId);
-  
+  const due = document.getElementById('due-' + secId);
+  const repeat = document.getElementById('repeat-' + secId);
   if (!input.value.trim()) return;
-  
   data.tasks.push({ 
-    text: input.value.trim(), 
-    type: secId, 
-    createdAt: getDStr(current), 
-    completedAt: null, 
-    doneDates: [],
-    repeat: repeatInput.value,
-    dueDate: dueInput.value || null 
+    text: input.value.trim(), type: secId, createdAt: getDStr(current), 
+    completedAt: null, doneDates: [], repeat: repeat.value, dueDate: due.value || null 
   });
-  
-  input.value = ''; dueInput.value = ''; repeatInput.value = 'none'; save(); render();
+  input.value = ''; due.value = ''; repeat.value = 'none'; save(); render();
 }
 
 function applySettings() {
   const bg = document.getElementById('bg-layer');
   const s = data.settings;
-  
   if (s.bgType === 'image') {
-    bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center';
+    bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover';
     document.documentElement.style.setProperty('--accent-color', '#4a90e2');
   } else {
-    bg.style.background = s.bg; bg.style.backgroundSize = 'cover';
+    bg.style.background = s.bg;
     document.documentElement.style.setProperty('--accent-color', s.themeColor || '#4a90e2');
   }
-  
   document.documentElement.style.setProperty('--section-opacity', s.op);
   document.documentElement.style.setProperty('--bg-blur', s.blur);
   document.documentElement.style.setProperty('--app-font', s.font);
-  
-  document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
-  if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
-  if (s.op === 0.6) document.getElementById('op-mid').classList.add('active');
-  if (s.op === 0.95) document.getElementById('op-low').classList.add('active');
-  if (s.blur === '0px') document.getElementById('blur-none').classList.add('active');
-  if (s.blur === '5px') document.getElementById('blur-mid').classList.add('active');
-  if (s.blur === '15px') document.getElementById('blur-high').classList.add('active');
-  if (s.font.includes('sans-serif') && !s.font.includes('Maru')) document.getElementById('font-sans').classList.add('active');
-  if (s.font.includes('Maru')) document.getElementById('font-maru').classList.add('active');
-  if (s.font.includes('serif') && !s.font.includes('sans')) document.getElementById('font-serif').classList.add('active');
 }
 
 function setBg(bg, type, color) { data.settings.bg = bg; data.settings.bgType = type; data.settings.themeColor = color; save(); render(); }
@@ -634,74 +528,40 @@ function buildSwatches() {
   const list = document.getElementById('swatch-list'); list.innerHTML = '';
   presets.forEach(p => {
     const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === p.bg && data.settings.bgType === 'css' ? ' active' : '');
+    div.className = 'swatch' + (data.settings.bg === p.bg ? ' active' : '');
     div.style.background = p.bg; div.onclick = () => setBg(p.bg, 'css', p.color);
     list.appendChild(div);
   });
   const up = document.createElement('label'); up.className = 'swatch'; up.style.border = '1.5px dashed #aaa';
-  up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:18px">＋</span><input type="file" accept="image/*" style="display:none">`;
+  up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa">＋</span><input type="file" accept="image/*" style="display:none">`;
   up.querySelector('input').onchange = (e) => {
-    const file = e.target.files[0]; if(!file) return;
-    const reader = new FileReader(); reader.onload = (ev) => { initImageEditor(ev.target.result); }; reader.readAsDataURL(file); e.target.value = '';
+    const reader = new FileReader(); reader.onload = (ev) => initImageEditor(ev.target.result); reader.readAsDataURL(e.target.files[0]);
   };
   list.appendChild(up);
-  
-  const histList = document.getElementById('history-list'); histList.innerHTML = '';
-  (data.uploads || []).forEach(item => {
-    const imgSrc = typeof item === 'string' ? item : item.img;
-    const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === imgSrc ? ' active' : '');
-    div.style.backgroundImage = `url(${imgSrc})`; div.style.backgroundSize = 'cover';
-    div.onclick = () => setBg(imgSrc, 'image', '#4a90e2');
-    histList.appendChild(div);
-  });
 }
 
 const canvas = document.getElementById('img-canvas'); const ctx = canvas.getContext('2d');
-let currentImgObj = null, scale = 1, posX = 0, posY = 0, lastScale = 1, lastPosX = 0, lastPosY = 0, startTouches = [];
+let currentImgObj = null;
 
 function initImageEditor(dataUrl) {
   currentImgObj = new Image();
   currentImgObj.onload = () => {
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    const minScale = Math.max(canvas.width / currentImgObj.naturalWidth, canvas.height / currentImgObj.naturalHeight);
-    scale = lastScale = minScale; posX = lastPosX = 0; posY = lastPosY = 0;
-    document.getElementById('img-modal').classList.add('show'); draw();
+    document.getElementById('img-modal').classList.add('show');
+    ctx.drawImage(currentImgObj, 0, 0, canvas.width, canvas.height);
   };
   currentImgObj.src = dataUrl;
 }
 
-function draw() {
-  if (!currentImgObj) return;
-  const cw = canvas.width, ch = canvas.height; ctx.clearRect(0, 0, cw, ch);
-  ctx.save(); ctx.translate(cw/2 + posX, ch/2 + posY); ctx.scale(scale, scale);
-  ctx.drawImage(currentImgObj, -currentImgObj.naturalWidth/2, -currentImgObj.naturalHeight/2); ctx.restore();
-}
-
-canvas.addEventListener('touchstart', e => { e.preventDefault(); startTouches = [...e.touches]; lastPosX=posX; lastPosY=posY; lastScale=scale; }, {passive:false});
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault(); const t = [...e.touches], cw = canvas.width, ch = canvas.height;
-  if(t.length===1 && startTouches.length===1) { posX = lastPosX + (t[0].clientX - startTouches[0].clientX); posY = lastPosY + (t[0].clientY - startTouches[0].clientY); } 
-  else if(t.length===2 && startTouches.length===2) {
-    const d1 = Math.hypot(startTouches[0].clientX-startTouches[1].clientX, startTouches[0].clientY-startTouches[1].clientY);
-    const d2 = Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
-    const ms = Math.max(cw/currentImgObj.naturalWidth, ch/currentImgObj.naturalHeight);
-    scale = Math.max(ms, Math.min(5, lastScale * (d2/d1)));
-  }
-  const lx = Math.max(0, (currentImgObj.naturalWidth*scale - cw)/2), ly = Math.max(0, (currentImgObj.naturalHeight*scale - ch)/2);
-  posX = Math.max(-lx, Math.min(lx, posX)); posY = Math.max(-ly, Math.min(ly, posY)); draw();
-}, {passive:false});
-canvas.addEventListener('touchend', () => { lastPosX = posX; lastPosY = posY; lastScale = scale; });
-
-function closeModal() { document.getElementById('img-modal').classList.remove('show'); currentImgObj = null; }
+function closeModal() { document.getElementById('img-modal').classList.remove('show'); }
 function confirmImage() {
-  const trimmedDataUrl = canvas.toDataURL("image/jpeg", 0.6); 
-  if(!data.uploads) data.uploads = []; data.uploads.unshift({ img: trimmedDataUrl, color: '#4a90e2' });
+  const url = canvas.toDataURL("image/jpeg", 0.6);
+  if(!data.uploads) data.uploads = []; data.uploads.unshift(url);
   if(data.uploads.length > 3) data.uploads.pop();
-  setBg(trimmedDataUrl, 'image', '#4a90e2'); closeModal();
+  setBg(url, 'image', '#4a90e2'); closeModal();
 }
 
-document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_' + getDStr(current), e.target.value); };
+document.getElementById('reflection').oninput = (e) => localStorage.setItem('refl_' + getDStr(current), e.target.value);
 render();
 </script>
 </body>
