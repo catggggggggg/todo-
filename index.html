@@ -18,16 +18,16 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-body { font-family: var(--app-font); overscroll-behavior-y: none; background: #000; color: #1a1a1a; transition: font-family 0.3s; }
+/* 全体スクロールをブラウザの自然な挙動に変更し、見切れ問題を解消 */
+body { font-family: var(--app-font); background: #000; color: #1a1a1a; transition: font-family 0.3s; min-height: 100vh; min-height: 100dvh; }
 
 #bg-layer { position: fixed; inset: -20px; background: linear-gradient(135deg,#fde8f0,#fbc8d8); background-size: cover; background-position: center; z-index: -1; transition: background 0.3s, filter 0.3s; filter: blur(var(--bg-blur)); }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.05); z-index: 0; pointer-events: none; }
 
 .app-container { 
   position: relative; z-index: 1; max-width: 500px; margin: 0 auto; 
-  /* スマホブラウザの高さ問題を解消し、下部に余裕を持たせる */
-  height: 100dvh; overflow-y: auto;
-  padding: calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 120px);
+  /* 画面下部に十分な余白を取り、設定が完全に表示されるようにする */
+  padding: calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 80px);
   display: flex; flex-direction: column; gap: 10px;
 }
 
@@ -272,7 +272,8 @@ function toggleSettings() {
   if (content.style.display === 'none') {
     content.style.display = 'grid';
     chevron.textContent = '▲';
-    setTimeout(() => { content.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 100);
+    // パネルを開いた時に自然に下へスクロール
+    setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 50);
   } else {
     content.style.display = 'none';
     chevron.textContent = '▼';
@@ -295,7 +296,6 @@ function render() {
       if (dStr < createdDate) return false; 
       
       if (t.completedAt) {
-        // 古いデータ（ISO形式）との互換性を保ちつつ比較
         const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
         return dStr >= createdDate && dStr <= compDate;
       } else {
@@ -306,12 +306,14 @@ function render() {
     visible.forEach(t => {
       const div = document.createElement('div');
       div.className = 'task-item';
-      const isDone = !!t.completedAt;
+      
+      // 表示中のカレンダー日付(dStr)が、完了日(compDate)と全く同じ場合のみ完了状態(車線あり)にする
+      const compDate = t.completedAt ? (t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt) : null;
+      const isDone = compDate === dStr;
       
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
       cb.onchange = () => {
         if (cb.checked) { 
-          // 現実の今日ではなく、カレンダーで選択中の日付を完了日として保存
           t.completedAt = getDStr(current); 
           showToast(); 
         } else { 
