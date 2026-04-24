@@ -34,7 +34,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
   border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); transition: background 0.3s;
 }
 
-/* ヘッダーのレイアウトをgridに変更し、日付を中央、ストリークを右に配置 */
 .header { 
   padding: 10px; 
   display: grid; 
@@ -44,30 +43,26 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 }
 .header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; grid-column: 1; }
 
-/* 連続達成バッジのCSSを修正：背景を消し、余白と色を調整 */
 #streak-badge { 
   font-size: 12px; 
   font-weight: 800; 
-  color: #555; /* 他のテキストに馴染む色に変更 */
-  /* background: rgba(255,107,107,0.1); 削除 */
-  padding: 0 5px; /* 余白を調整 */
-  /* border-radius: 15px; 削除 */
+  color: #555;
+  padding: 0 5px;
   display: flex; 
   align-items: center; 
   gap: 2px; 
-  grid-column: 3; /* グリッドの3列目に配置 */
-  justify-self: end; /* 列内で右寄せ */
+  grid-column: 3; 
+  justify-self: end; 
 }
 
-/* 日付ナビゲーションのコンテナを追加 */
 .date-nav-container {
   display: flex;
   align-items: center;
-  justify-content: center; /* コンテナ内で中央揃え */
-  grid-column: 2; /* グリッドの2列目（中央）に配置 */
+  justify-content: center; 
+  grid-column: 2; 
 }
 
-.date-nav-btn { background: none; border: none; font-size: 20px; padding: 12px 10px; /* 余白を調整 */ color: #555; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+.date-nav-btn { background: none; border: none; font-size: 20px; padding: 12px 10px; color: #555; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 .date-nav-btn:active { transform: scale(0.8); }
 .date-wrap { position: relative; margin: 0 5px; }
 .date-label { font-size: 15px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); padding: 8px 15px; border-radius: 20px; white-space: nowrap; }
@@ -81,6 +76,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .task-text { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-text.done { text-decoration: line-through; color: #aaa; }
 .due-badge { font-size: 10px; font-weight: bold; color: #fff; background: #ff6b6b; padding: 3px 6px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+.repeat-badge { font-size: 9px; color: #777; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
 .edit-btn { background: none; border: none; color: #999; font-size: 16px; padding: 5px; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; flex-shrink: 0; cursor: pointer; }
 
@@ -93,11 +89,12 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 }
 #toast.show { opacity: 1; bottom: 120px; }
 
-.add-area { display: flex; gap: 6px; padding: 10px 12px; align-items: center; }
-.add-area input[type="text"] { flex: 1; background: rgba(0,0,0,0.05); border: none; border-radius: 8px; padding: 10px; font-size: 14px; outline: none; min-width: 0; }
+.add-area { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; align-items: center; }
+.add-area input[type="text"] { flex: 1; background: rgba(0,0,0,0.05); border: none; border-radius: 8px; padding: 10px; font-size: 14px; outline: none; min-width: 150px; }
 .date-input-wrap { display: flex; align-items: center; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 0 5px 0 8px; height: 38px;}
 .date-icon { font-size: 11px; font-weight: bold; color: #777; white-space: nowrap; }
 .add-area input[type="date"] { background: transparent; border: none; font-size: 12px; outline: none; color: #555; width: 100px; }
+.repeat-select { background: rgba(0,0,0,0.05); border: none; border-radius: 8px; padding: 0 5px; height: 38px; font-size: 12px; color: #555; outline: none; cursor: pointer; }
 .add-area button { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 0 12px; height: 38px; font-weight: 700; transition: 0.3s; flex-shrink: 0; cursor: pointer; font-size: 13px; }
 
 .reflection-box { width: calc(100% - 30px); height: 80px; background: rgba(255,255,255,0.3); border: none; border-radius: 12px; padding: 10px; font-size: 14px; margin: 8px 15px 15px; outline: none; resize: none; font-family: inherit; }
@@ -159,6 +156,11 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
         <span class="date-icon">期限:</span>
         <input type="date" id="due-today">
       </div>
+      <select id="repeat-today" class="repeat-select">
+        <option value="none">1回のみ</option>
+        <option value="daily">毎日</option>
+        <option value="weekly">毎週</option>
+      </select>
       <button onclick="addTask('today')">追加</button>
     </div>
   </div>
@@ -172,6 +174,11 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
         <span class="date-icon">期限:</span>
         <input type="date" id="due-weekly">
       </div>
+      <select id="repeat-weekly" class="repeat-select">
+        <option value="none">1回のみ</option>
+        <option value="daily">毎日</option>
+        <option value="weekly">毎週</option>
+      </select>
       <button onclick="addTask('weekly')">追加</button>
     </div>
   </div>
@@ -287,6 +294,13 @@ function save() {
 function getDStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); }
 
+// 該当する日の「週のID（その週の日曜日の日付）」を返す
+function getWeekId(dateStr) {
+  const d = new Date(dateStr.replace(/-/g, '/'));
+  d.setDate(d.getDate() - d.getDay());
+  return getDStr(d);
+}
+
 function showToast() {
   const t = document.getElementById('toast');
   t.textContent = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
@@ -307,7 +321,6 @@ function toggleSettings() {
   }
 }
 
-// 連続達成記録を計算する関数
 function calcStreak() {
   let count = 0;
   let tempD = new Date();
@@ -320,6 +333,9 @@ function calcStreak() {
     if(t.completedAt) {
       const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
       doneDates.add(compDate);
+    }
+    if(t.doneDates) {
+      t.doneDates.forEach(d => doneDates.add(d));
     }
   });
 
@@ -350,9 +366,12 @@ function render() {
     const visible = data.tasks.filter(t => {
       if (t.type !== type) return false;
       const createdDate = t.createdAt; 
-      
       if (dStr < createdDate) return false; 
       
+      // 繰り返しタスク（毎日・毎週）は、作成日以降であれば常に表示
+      if (t.repeat === 'daily' || t.repeat === 'weekly') return true;
+
+      // 1回のみのタスクは従来通り完了日の翌日からは非表示
       if (t.completedAt) {
         const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
         return dStr >= createdDate && dStr <= compDate;
@@ -365,15 +384,35 @@ function render() {
       const div = document.createElement('div');
       div.className = 'task-item';
       
-      const isDone = !!t.completedAt;
+      let isDone = false;
+      if (t.repeat === 'daily') {
+        isDone = (t.doneDates || []).includes(dStr);
+      } else if (t.repeat === 'weekly') {
+        const currentWeekId = getWeekId(dStr);
+        isDone = (t.doneDates || []).some(date => getWeekId(date) === currentWeekId);
+      } else {
+        isDone = !!t.completedAt && (t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt) === dStr;
+      }
       
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
       cb.onchange = () => {
         if (cb.checked) { 
-          t.completedAt = getDStr(current); 
+          if (t.repeat === 'daily' || t.repeat === 'weekly') {
+            if (!t.doneDates) t.doneDates = [];
+            if (!t.doneDates.includes(dStr)) t.doneDates.push(dStr);
+          } else {
+            t.completedAt = dStr; 
+          }
           showToast(); 
         } else { 
-          t.completedAt = null; 
+          if (t.repeat === 'daily') {
+            t.doneDates = (t.doneDates || []).filter(d => d !== dStr);
+          } else if (t.repeat === 'weekly') {
+            const currentWeekId = getWeekId(dStr);
+            t.doneDates = (t.doneDates || []).filter(d => getWeekId(d) !== currentWeekId);
+          } else {
+            t.completedAt = null; 
+          }
         }
         save(); render();
         if(document.getElementById('archive-modal').classList.contains('show')) renderArchive();
@@ -383,6 +422,15 @@ function render() {
       
       const textSpan = document.createElement('span'); textSpan.className = 'task-text' + (isDone ? ' done' : '');
       textSpan.textContent = t.text;
+      
+      // 繰り返しバッジの表示
+      if (t.repeat === 'daily' || t.repeat === 'weekly') {
+        const badge = document.createElement('span');
+        badge.className = 'repeat-badge';
+        badge.textContent = t.repeat === 'daily' ? '毎日' : '毎週';
+        textSpan.appendChild(badge);
+      }
+
       contentDiv.appendChild(textSpan);
 
       if(t.dueDate) {
@@ -402,7 +450,7 @@ function render() {
 
       const del = document.createElement('button'); del.className = 'del-btn'; del.innerHTML = '×';
       del.title = '削除';
-      del.onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
+      del.onclick = () => { if(confirm("このタスクを削除しますか？")) { data.tasks = data.tasks.filter(x => x !== t); save(); render(); } };
       
       div.appendChild(cb); 
       div.appendChild(contentDiv); 
@@ -413,7 +461,7 @@ function render() {
   });
   document.getElementById('reflection').value = localStorage.getItem('refl_' + dStr) || '';
   applySettings(); buildSwatches(); 
-  calcStreak(); // ストリークを再計算して表示
+  calcStreak();
 }
 
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
@@ -425,16 +473,25 @@ function setArchFilter(f) { currentArchFilter = f; document.querySelectorAll('.f
 
 function renderArchive() {
   const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
-  let completed = data.tasks.filter(t => t.completedAt);
-  completed.sort((a, b) => {
-    const dA = a.completedAt.includes('T') ? getDStr(new Date(a.completedAt)) : a.completedAt;
-    const dB = b.completedAt.includes('T') ? getDStr(new Date(b.completedAt)) : b.completedAt;
-    return dB.localeCompare(dA);
+  
+  // 表示用の全完了データを生成（繰り返しタスクの各完了日も含む）
+  let completedEntries = [];
+  data.tasks.forEach(t => {
+    if (t.repeat === 'daily' || t.repeat === 'weekly') {
+      (t.doneDates || []).forEach(d => {
+        completedEntries.push({ ...t, archiveDate: d, originalRef: t });
+      });
+    } else if (t.completedAt) {
+      const cDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
+      completedEntries.push({ ...t, archiveDate: cDate, originalRef: t });
+    }
   });
+
+  completedEntries.sort((a, b) => b.archiveDate.localeCompare(a.archiveDate));
   
   const todayStr = getDStr(new Date());
-  completed = completed.filter(t => {
-    const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
+  const filtered = completedEntries.filter(t => {
+    const compDate = t.archiveDate;
     if (currentArchFilter === 'day') return compDate === todayStr;
     const d = new Date(compDate.replace(/-/g, '/'));
     const diffDays = (new Date(todayStr.replace(/-/g, '/')) - d) / (1000 * 60 * 60 * 24);
@@ -442,12 +499,22 @@ function renderArchive() {
     if (currentArchFilter === 'month') return d.getMonth() === new Date().getMonth();
     return true;
   });
-  if(!completed.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">該当する完了タスクはありません</div>`; return; }
-  completed.forEach(t => {
+
+  if(!filtered.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">該当する完了タスクはありません</div>`; return; }
+  
+  filtered.forEach(entry => {
+    const t = entry.originalRef;
     const div = document.createElement('div'); div.className = 'task-item';
-    const compDateStr = (t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt).replace(/-/g,'/');
+    const compDateStr = entry.archiveDate.replace(/-/g,'/');
     div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${escapeHTML(t.text)}</span><span class="due-badge" style="background:#ccc">${compDateStr}完了</span>`;
-    div.querySelector('.cb').onchange = () => { t.completedAt = null; save(); render(); renderArchive(); };
+    div.querySelector('.cb').onchange = () => {
+      if (t.repeat === 'daily' || t.repeat === 'weekly') {
+        t.doneDates = t.doneDates.filter(d => d !== entry.archiveDate);
+      } else {
+        t.completedAt = null;
+      }
+      save(); render(); renderArchive();
+    };
     listEl.appendChild(div);
   });
 }
@@ -455,14 +522,21 @@ function renderArchive() {
 function addTask(type) {
   const input = document.getElementById('input-' + type);
   const dueInput = document.getElementById('due-' + type);
+  const repeatInput = document.getElementById('repeat-' + type);
+  
   if (!input.value.trim()) return;
   
   data.tasks.push({ 
-    text: input.value.trim(), type: type, createdAt: getDStr(current), completedAt: null, 
+    text: input.value.trim(), 
+    type: type, 
+    createdAt: getDStr(current), 
+    completedAt: null, 
+    doneDates: [],
+    repeat: repeatInput.value,
     dueDate: dueInput.value || null 
   });
   
-  input.value = ''; dueInput.value = ''; save(); render();
+  input.value = ''; dueInput.value = ''; repeatInput.value = 'none'; save(); render();
 }
 
 function applySettings() {
