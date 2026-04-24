@@ -89,13 +89,15 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 }
 #toast.show { opacity: 1; bottom: 120px; }
 
-.add-area { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; align-items: center; }
-.add-area input[type="text"] { flex: 1; background: rgba(0,0,0,0.05); border: none; border-radius: 8px; padding: 10px; font-size: 14px; outline: none; min-width: 150px; }
-.date-input-wrap { display: flex; align-items: center; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 0 5px 0 8px; height: 38px;}
-.date-icon { font-size: 11px; font-weight: bold; color: #777; white-space: nowrap; }
-.add-area input[type="date"] { background: transparent; border: none; font-size: 12px; outline: none; color: #555; width: 100px; }
-.repeat-select { background: rgba(0,0,0,0.05); border: none; border-radius: 8px; padding: 0 5px; height: 38px; font-size: 12px; color: #555; outline: none; cursor: pointer; }
-.add-area button { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 0 12px; height: 38px; font-weight: 700; transition: 0.3s; flex-shrink: 0; cursor: pointer; font-size: 13px; }
+/* 追加エリアのレイアウト変更箇所 */
+.add-area { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; }
+.add-area-row { display: flex; gap: 8px; align-items: center; width: 100%; }
+.add-area input[type="text"] { flex: 1; background: rgba(0,0,0,0.05); border: none; border-radius: 8px; padding: 10px; font-size: 14px; outline: none; }
+.add-area button { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 0 15px; height: 38px; font-weight: 700; transition: 0.3s; flex-shrink: 0; cursor: pointer; font-size: 13px; }
+.date-input-wrap { display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 0 8px; height: 38px; flex: 1; }
+.date-icon { font-size: 11px; font-weight: bold; color: #777; white-space: nowrap; margin-right: 4px; }
+.add-area input[type="date"] { background: transparent; border: none; font-size: 12px; outline: none; color: #555; width: 110px; }
+.repeat-select { background: rgba(0,0,0,0.05); border: none; border-radius: 8px; padding: 0 10px; height: 38px; font-size: 12px; color: #555; outline: none; cursor: pointer; flex: 1; }
 
 .reflection-box { width: calc(100% - 30px); height: 80px; background: rgba(255,255,255,0.3); border: none; border-radius: 12px; padding: 10px; font-size: 14px; margin: 8px 15px 15px; outline: none; resize: none; font-family: inherit; }
 
@@ -151,17 +153,21 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
     <div class="card-title">今日やること</div>
     <div id="list-today"></div>
     <div class="add-area">
-      <input type="text" id="input-today" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('today')">
-      <div class="date-input-wrap">
-        <span class="date-icon">期限:</span>
-        <input type="date" id="due-today">
+      <div class="add-area-row">
+        <input type="text" id="input-today" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('today')">
+        <button onclick="addTask('today')">追加</button>
       </div>
-      <select id="repeat-today" class="repeat-select">
-        <option value="none">1回のみ</option>
-        <option value="daily">毎日</option>
-        <option value="weekly">毎週</option>
-      </select>
-      <button onclick="addTask('today')">追加</button>
+      <div class="add-area-row">
+        <div class="date-input-wrap">
+          <span class="date-icon">期限:</span>
+          <input type="date" id="due-today">
+        </div>
+        <select id="repeat-today" class="repeat-select">
+          <option value="none">1回のみ</option>
+          <option value="daily">毎日</option>
+          <option value="weekly">毎週</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -169,17 +175,21 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
     <div class="card-title">今週やること</div>
     <div id="list-weekly"></div>
     <div class="add-area">
-      <input type="text" id="input-weekly" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('weekly')">
-      <div class="date-input-wrap">
-        <span class="date-icon">期限:</span>
-        <input type="date" id="due-weekly">
+      <div class="add-area-row">
+        <input type="text" id="input-weekly" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('weekly')">
+        <button onclick="addTask('weekly')">追加</button>
       </div>
-      <select id="repeat-weekly" class="repeat-select">
-        <option value="none">1回のみ</option>
-        <option value="daily">毎日</option>
-        <option value="weekly">毎週</option>
-      </select>
-      <button onclick="addTask('weekly')">追加</button>
+      <div class="add-area-row">
+        <div class="date-input-wrap">
+          <span class="date-icon">期限:</span>
+          <input type="date" id="due-weekly">
+        </div>
+        <select id="repeat-weekly" class="repeat-select">
+          <option value="none">1回のみ</option>
+          <option value="daily">毎日</option>
+          <option value="weekly">毎週</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -294,7 +304,6 @@ function save() {
 function getDStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); }
 
-// 該当する日の「週のID（その週の日曜日の日付）」を返す
 function getWeekId(dateStr) {
   const d = new Date(dateStr.replace(/-/g, '/'));
   d.setDate(d.getDate() - d.getDay());
@@ -368,10 +377,8 @@ function render() {
       const createdDate = t.createdAt; 
       if (dStr < createdDate) return false; 
       
-      // 繰り返しタスク（毎日・毎週）は、作成日以降であれば常に表示
       if (t.repeat === 'daily' || t.repeat === 'weekly') return true;
 
-      // 1回のみのタスクは従来通り完了日の翌日からは非表示
       if (t.completedAt) {
         const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
         return dStr >= createdDate && dStr <= compDate;
@@ -423,7 +430,6 @@ function render() {
       const textSpan = document.createElement('span'); textSpan.className = 'task-text' + (isDone ? ' done' : '');
       textSpan.textContent = t.text;
       
-      // 繰り返しバッジの表示
       if (t.repeat === 'daily' || t.repeat === 'weekly') {
         const badge = document.createElement('span');
         badge.className = 'repeat-badge';
@@ -450,7 +456,7 @@ function render() {
 
       const del = document.createElement('button'); del.className = 'del-btn'; del.innerHTML = '×';
       del.title = '削除';
-      del.onclick = () => { if(confirm("このタスクを削除しますか？")) { data.tasks = data.tasks.filter(x => x !== t); save(); render(); } };
+      del.onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
       
       div.appendChild(cb); 
       div.appendChild(contentDiv); 
@@ -474,7 +480,6 @@ function setArchFilter(f) { currentArchFilter = f; document.querySelectorAll('.f
 function renderArchive() {
   const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
   
-  // 表示用の全完了データを生成（繰り返しタスクの各完了日も含む）
   let completedEntries = [];
   data.tasks.forEach(t => {
     if (t.repeat === 'daily' || t.repeat === 'weekly') {
