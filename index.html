@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MyToDo">
 <link rel="apple-touch-icon" href="icon.png">
-<title>ToDo App v27</title>
+<title>ToDo App v24</title>
 <style>
 :root { 
   --section-opacity: 0.95; 
@@ -54,8 +54,10 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .task-meta { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
 .badge { font-size: 9px; font-weight: bold; color: #fff; background: #ff6b6b; padding: 2px 5px; border-radius: 4px; white-space: nowrap; }
 .badge.routine { background: var(--accent-color); }
-.badge.weekly { background: #8e44ad; }
-.del-btn { background: none; border: none; padding: 5px; flex-shrink: 0; cursor: pointer; color: #ccc; font-size: 20px; }
+.badge.time { background: #8e44ad; }
+.edit-btn, .del-btn { background: none; border: none; padding: 5px; flex-shrink: 0; cursor: pointer; }
+.edit-btn { color: #999; font-size: 16px; }
+.del-btn { color: #ccc; font-size: 20px; }
 
 #toast { 
   position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
@@ -92,9 +94,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .archive-card { background: #fff; width: 100%; max-width: 500px; max-height: 85vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; }
 .archive-header { padding: 15px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; }
 #archive-list { overflow-y: auto; flex: 1; padding: 20px; }
-.archived-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
-.archived-text { text-decoration: line-through; color: #aaa; }
-.archived-date { font-size: 10px; color: #999; margin-left: 8px; }
 </style>
 </head>
 <body>
@@ -126,14 +125,13 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
       </div>
       <div class="add-row">
         <div class="opt-wrap"><span style="white-space:nowrap">🔁</span>
-          <select id="routine-today">
-            <option value="none">単発</option>
-            <option value="daily">毎日</option>
-            <option value="weekly">毎週</option>
-          </select>
+          <select id="routine-today"><option value="none">単発</option><option value="daily">毎日</option></select>
         </div>
         <div class="opt-wrap"><span style="white-space:nowrap">📅</span>
           <input type="date" id="due-today">
+        </div>
+        <div class="opt-wrap"><span style="white-space:nowrap">⏰</span>
+          <input type="time" id="time-today">
         </div>
       </div>
     </div>
@@ -149,14 +147,13 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
       </div>
       <div class="add-row">
         <div class="opt-wrap"><span style="white-space:nowrap">🔁</span>
-          <select id="routine-weekly">
-            <option value="none">単発</option>
-            <option value="daily">毎日</option>
-            <option value="weekly">毎週</option>
-          </select>
+          <select id="routine-weekly"><option value="none">単発</option><option value="daily">毎日</option></select>
         </div>
         <div class="opt-wrap"><span style="white-space:nowrap">📅</span>
           <input type="date" id="due-weekly">
+        </div>
+        <div class="opt-wrap"><span style="white-space:nowrap">⏰</span>
+          <input type="time" id="time-weekly">
         </div>
       </div>
     </div>
@@ -172,6 +169,10 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
       <span>⚙️ 詳細設定</span><span id="settings-chevron">▼</span>
     </div>
     <div class="settings-grid" id="settings-content" style="display: none;">
+      <div>
+        <span class="label">通知設定</span>
+        <button class="op-btn" style="width:100%" onclick="requestNotification()">ブラウザ通知を許可する</button>
+      </div>
       <div><span class="label">背景</span><div class="color-list" id="swatch-list"></div></div>
       <div><span class="label">ぼかし</span>
         <div class="op-btn-group"><button id="blur-none" class="op-btn" onclick="setBlur('0px')">なし</button><button id="blur-mid" class="op-btn" onclick="setBlur('5px')">弱</button><button id="blur-high" class="op-btn" onclick="setBlur('15px')">強</button></div>
@@ -191,7 +192,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 
 <script>
 let current = new Date();
-const storageKey = 'todo_app_permanent_data_v27';
+const storageKey = 'todo_app_permanent_data_v2'; 
 
 const presets = [
   { bg: 'linear-gradient(135deg,#fde8f0,#fbc8d8)', color: '#ec4899' }, 
@@ -199,7 +200,7 @@ const presets = [
   { bg: 'linear-gradient(135deg,#ecfccb,#d9f99d)', color: '#84cc16' }, 
 ];
 
-let rawData = localStorage.getItem(storageKey) || localStorage.getItem('todo_app_permanent_data_v2');
+let rawData = localStorage.getItem(storageKey) || localStorage.getItem('todo_app_permanent_data');
 let data = rawData ? JSON.parse(rawData) : { tasks: [], settings: {} };
 
 if(!data.settings.bg) data.settings = { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95, blur: '0px' };
@@ -207,22 +208,12 @@ if(!data.settings.bg) data.settings = { bg: presets[0].bg, bgType: 'css', themeC
 function save() { localStorage.setItem(storageKey, JSON.stringify(data)); calcStreak(); }
 function getDStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 
-// 属する週の識別用（月曜始まり）
-function getWeekStr(dateObj) {
-  const d = new Date(dateObj);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); 
-  d.setDate(diff);
-  return "W-" + getDStr(d);
-}
-
 function showToast() {
   const t = document.getElementById('toast');
   t.textContent = "お疲れ様！🔥"; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-// 連続達成日数の計算
 function calcStreak() {
   let count = 0;
   let tempD = new Date();
@@ -233,7 +224,7 @@ function calcStreak() {
   let doneDates = new Set();
   data.tasks.forEach(t => {
     if(t.completedAt) doneDates.add(t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt);
-    if(t.completedDates) t.completedDates.forEach(cd => doneDates.add(cd.startsWith('W-') ? cd : cd)); 
+    if(t.completedDates) t.completedDates.forEach(cd => doneDates.add(cd));
   });
 
   let currentCheck = todayStr;
@@ -255,7 +246,6 @@ let draggedTask = null;
 
 function render() {
   const dStr = getDStr(current);
-  const wStr = getWeekStr(current);
   const days = ['日','月','火','水','木','金','土'];
   document.getElementById('date-label').textContent = `${current.getFullYear()}年${current.getMonth()+1}月${current.getDate()}日(${days[current.getDay()]})`;
 
@@ -265,18 +255,12 @@ function render() {
     
     const visible = data.tasks.filter(t => {
       if (t.type !== type) return false;
-      
-      // 毎日・毎週のルーチンは作成日以降なら常に表示
-      if (t.routine === 'daily' || t.routine === 'weekly') return dStr >= t.createdAt;
-      
-      // 単発タスクの表示ロジック
+      if (t.routine === 'daily') return dStr >= t.createdAt;
       if (dStr < t.createdAt) return false; 
       if (t.completedAt) {
-        // 完了した単発タスクは、完了した当日のみ表示（取り消し線付き）、翌日以降は消える
         const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
-        return dStr >= t.createdAt && dStr === compDate;
+        return dStr >= t.createdAt && dStr <= compDate;
       }
-      // 未完了なら表示
       return dStr >= t.createdAt;
     });
 
@@ -284,8 +268,6 @@ function render() {
       const div = document.createElement('div');
       div.className = 'task-item';
       div.draggable = true;
-
-      // Drag & Drop
       div.ondragstart = (e) => { draggedTask = t; div.style.opacity = '0.4'; e.dataTransfer.effectAllowed = 'move'; };
       div.ondragend = () => { div.style.opacity = '1'; draggedTask = null; };
       div.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
@@ -300,20 +282,13 @@ function render() {
       };
 
       const handle = document.createElement('span'); handle.className = 'drag-handle'; handle.innerHTML = '≡';
-      
-      // 完了判定のロジック
-      const isDone = (t.routine === 'daily') ? (t.completedDates && t.completedDates.includes(dStr)) :
-                     (t.routine === 'weekly') ? (t.completedDates && t.completedDates.includes(wStr)) :
-                     !!t.completedAt;
-      
+      const isDone = t.routine === 'daily' ? (t.completedDates && t.completedDates.includes(dStr)) : !!t.completedAt;
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
       cb.onchange = () => {
-        if (!t.completedDates) t.completedDates = [];
         if (cb.checked) { 
           if(t.routine === 'daily') {
+            if(!t.completedDates) t.completedDates = [];
             if(!t.completedDates.includes(dStr)) t.completedDates.push(dStr);
-          } else if(t.routine === 'weekly') {
-            if(!t.completedDates.includes(wStr)) t.completedDates.push(wStr);
           } else {
             t.completedAt = getDStr(current); 
           }
@@ -321,8 +296,6 @@ function render() {
         } else { 
           if(t.routine === 'daily') {
             t.completedDates = t.completedDates.filter(d => d !== dStr);
-          } else if(t.routine === 'weekly') {
-            t.completedDates = t.completedDates.filter(d => d !== wStr);
           } else {
             t.completedAt = null; 
           }
@@ -333,18 +306,15 @@ function render() {
       const contentDiv = document.createElement('div'); contentDiv.className = 'task-content';
       const textSpan = document.createElement('span'); textSpan.className = 'task-text' + (isDone ? ' done' : '');
       textSpan.textContent = t.text;
-      
       const metaDiv = document.createElement('div'); metaDiv.className = 'task-meta';
       if(t.routine === 'daily') { metaDiv.innerHTML += `<span class="badge routine">🔁 毎日</span>`; }
-      if(t.routine === 'weekly') { metaDiv.innerHTML += `<span class="badge weekly">🔁 毎週</span>`; }
       if(t.dueDate) { metaDiv.innerHTML += `<span class="badge">期限: ${t.dueDate.replace(/-/g, '/')}</span>`; }
-      
+      if(t.notifyTime) { metaDiv.innerHTML += `<span class="badge time">⏰ ${t.notifyTime}</span>`; }
       contentDiv.appendChild(textSpan);
       if(metaDiv.innerHTML) contentDiv.appendChild(metaDiv);
 
       const del = document.createElement('button'); del.className = 'del-btn'; del.innerHTML = '×';
       del.onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
-      
       div.appendChild(handle); div.appendChild(cb); div.appendChild(contentDiv); div.appendChild(del); 
       listEl.appendChild(div);
     });
@@ -356,41 +326,20 @@ function render() {
 function addTask(type) {
   const input = document.getElementById('input-' + type);
   const dueInput = document.getElementById('due-' + type);
+  const timeInput = document.getElementById('time-' + type);
   const routineInput = document.getElementById('routine-' + type);
   if (!input.value.trim()) return;
-  
   data.tasks.push({ 
     text: input.value.trim(), type: type, createdAt: getDStr(current), completedAt: null, completedDates: [],
-    dueDate: dueInput.value || null, routine: routineInput.value
+    dueDate: dueInput.value || null, routine: routineInput.value, notifyTime: timeInput.value || null, notified: false
   });
-  
-  input.value = ''; dueInput.value = ''; save(); render();
+  input.value = ''; dueInput.value = ''; timeInput.value = ''; save(); render();
 }
 
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
 function jumpDate(v) { if (v) current = new Date(v.replace(/-/g, '/')); render(); }
 function toggleSettings() { const c = document.getElementById('settings-content'); c.style.display = c.style.display === 'none' ? 'grid' : 'none'; }
-
-// アーカイブ機能の処理
-function openArchive() { 
-  const listEl = document.getElementById('archive-list');
-  listEl.innerHTML = '';
-  // 単発タスクで完了済みのものを抽出
-  const archived = data.tasks.filter(t => t.routine === 'none' && t.completedAt);
-  
-  if(archived.length === 0) {
-    listEl.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">完了した単発タスクはありません</p>';
-  } else {
-    // 新しい順に並び替え
-    archived.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt)).forEach(t => {
-      const div = document.createElement('div');
-      div.className = 'archived-item';
-      div.innerHTML = `<span class="archived-text">${t.text}</span> <span class="archived-date">完了日: ${t.completedAt}</span>`;
-      listEl.appendChild(div);
-    });
-  }
-  document.getElementById('archive-modal').classList.add('show'); 
-}
+function openArchive() { document.getElementById('archive-modal').classList.add('show'); }
 function closeArchive() { document.getElementById('archive-modal').classList.remove('show'); }
 
 function applySettings() {
@@ -414,6 +363,27 @@ function buildSwatches() {
 }
 
 document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_' + getDStr(current), e.target.value); };
+
+function requestNotification() {
+  if (!("Notification" in window)) { alert("お使いのブラウザは通知機能に対応していません。"); return; }
+  Notification.requestPermission().then(p => { if (p === "granted") alert("通知が許可されました！"); });
+}
+
+setInterval(() => {
+  if (Notification.permission !== "granted") return;
+  const now = new Date(); const dStr = getDStr(now);
+  const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  data.tasks.forEach(t => {
+    if (t.notifyTime && !t.notified) {
+      let isTargetDay = (t.routine === 'daily') ? true : (t.dueDate === dStr || t.createdAt === dStr);
+      if (isTargetDay && t.notifyTime === timeStr) {
+        new Notification("MyToDo リマインダー", { body: `「${t.text}」の時間です！` });
+        t.notified = true; save();
+      }
+    }
+  });
+  if(timeStr === "00:00") { data.tasks.forEach(t => t.notified = false); save(); }
+}, 60000);
 
 render();
 </script>
