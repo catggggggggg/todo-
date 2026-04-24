@@ -68,14 +68,26 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .date-label { font-size: 15px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); padding: 8px 15px; border-radius: 20px; white-space: nowrap; }
 #date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-/* カードタイトルの編集ボタン対応 */
+/* カードタイトル周り */
 .card-title { 
   font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; 
   text-transform: uppercase; letter-spacing: 1px; 
-  display: flex; align-items: center; gap: 5px;
+  display: flex; align-items: center; justify-content: space-between;
 }
+.card-title-left { display: flex; align-items: center; gap: 5px; }
 .edit-btn-title { background: none; border: none; color: #aaa; font-size: 14px; cursor: pointer; padding: 2px; transition: 0.2s; }
 .edit-btn-title:active { transform: scale(0.9); color: var(--accent-color); }
+.del-section-btn { color: #ff8787; font-size: 14px; margin-left: 5px; }
+
+/* セクション追加ボタン */
+.add-section-btn {
+  width: 100%; padding: 15px; margin: 5px 0;
+  border: 2px dashed rgba(255,255,255,0.6); border-radius: 18px;
+  background: rgba(255,255,255, calc(var(--section-opacity) - 0.3)); 
+  font-weight: 800; color: #666; cursor: pointer;
+  transition: 0.3s; font-size: 14px;
+}
+.add-section-btn:active { transform: scale(0.98); background: rgba(255,255,255,0.8); }
 
 .task-item { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
 .cb { width: 22px; height: 22px; accent-color: var(--accent-color); transition: 0.3s; flex-shrink: 0; }
@@ -155,55 +167,9 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
     <div id="streak-badge">🔥 <span id="streak-count">0</span>日</div>
   </div>
 
-  <div class="card">
-    <div class="card-title">
-      <span id="title-label-today">今日やること</span>
-      <button class="edit-btn-title" onclick="renameSection('today')">✎</button>
-    </div>
-    <div id="list-today"></div>
-    <div class="add-area">
-      <div class="add-area-row">
-        <input type="text" id="input-today" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('today')">
-        <button onclick="addTask('today')">追加</button>
-      </div>
-      <div class="add-area-row">
-        <div class="date-input-wrap">
-          <span class="date-icon">期限:</span>
-          <input type="date" id="due-today">
-        </div>
-        <select id="repeat-today" class="repeat-select">
-          <option value="none">1回のみ</option>
-          <option value="daily">毎日</option>
-          <option value="weekly">毎週</option>
-        </select>
-      </div>
-    </div>
-  </div>
+  <div id="sections-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
 
-  <div class="card">
-    <div class="card-title">
-      <span id="title-label-weekly">今週やること</span>
-      <button class="edit-btn-title" onclick="renameSection('weekly')">✎</button>
-    </div>
-    <div id="list-weekly"></div>
-    <div class="add-area">
-      <div class="add-area-row">
-        <input type="text" id="input-weekly" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('weekly')">
-        <button onclick="addTask('weekly')">追加</button>
-      </div>
-      <div class="add-area-row">
-        <div class="date-input-wrap">
-          <span class="date-icon">期限:</span>
-          <input type="date" id="due-weekly">
-        </div>
-        <select id="repeat-weekly" class="repeat-select">
-          <option value="none">1回のみ</option>
-          <option value="daily">毎日</option>
-          <option value="weekly">毎週</option>
-        </select>
-      </div>
-    </div>
-  </div>
+  <button class="add-section-btn" onclick="addSection()">＋ 新しいリストを追加</button>
 
   <div class="card">
     <div class="card-title">今日のメモ</div>
@@ -302,9 +268,13 @@ const praiseMessages = ["お疲れ様！", "その調子！", "すごい！", "�
 
 let data = JSON.parse(localStorage.getItem(storageKey)) || { tasks: [], uploads: [], settings: {} };
 
-// セクション名の初期化設定
-if(!data.settings.titleToday) data.settings.titleToday = "今日やること";
-if(!data.settings.titleWeekly) data.settings.titleWeekly = "今週やること";
+// 旧データからの移行：セクションリストの初期化
+if (!data.sections) {
+  data.sections = [
+    { id: 'today', title: data.settings.titleToday || "今日やること" },
+    { id: 'weekly', title: data.settings.titleWeekly || "今週やること" }
+  ];
+}
 
 if(!data.settings.bg) data.settings = { ...data.settings, bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95 };
 if(data.settings.blur === undefined) data.settings.blur = '0px';
@@ -326,12 +296,32 @@ function getWeekId(dateStr) {
   return getDStr(d);
 }
 
-function renameSection(type) {
-  const currentTitle = type === 'today' ? data.settings.titleToday : data.settings.titleWeekly;
-  const newTitle = prompt("セクションの名前を変更しますか？", currentTitle);
+// セクション関連の機能
+function addSection() {
+  const title = prompt("新しいリストの名前を入力してください:");
+  if (title && title.trim() !== "") {
+    const newId = 'sec_' + Date.now();
+    data.sections.push({ id: newId, title: title.trim() });
+    save();
+    render();
+  }
+}
+
+function renameSection(id) {
+  const sec = data.sections.find(s => s.id === id);
+  if (!sec) return;
+  const newTitle = prompt("リストの名前を変更しますか？", sec.title);
   if (newTitle !== null && newTitle.trim() !== "") {
-    if (type === 'today') data.settings.titleToday = newTitle.trim();
-    else data.settings.titleWeekly = newTitle.trim();
+    sec.title = newTitle.trim();
+    save();
+    render();
+  }
+}
+
+function deleteSection(id) {
+  if (confirm("このリストと、含まれるタスクをすべて削除しますか？")) {
+    data.sections = data.sections.filter(s => s.id !== id);
+    data.tasks = data.tasks.filter(t => t.type !== id);
     save();
     render();
   }
@@ -395,16 +385,47 @@ function render() {
   const days = ['日','月','火','水','木','金','土'];
   document.getElementById('date-label').textContent = `${current.getFullYear()}年${current.getMonth()+1}月${current.getDate()}日(${days[current.getDay()]})`;
 
-  // カスタムタイトルの反映
-  document.getElementById('title-label-today').textContent = data.settings.titleToday;
-  document.getElementById('title-label-weekly').textContent = data.settings.titleWeekly;
+  const container = document.getElementById('sections-container');
+  container.innerHTML = ''; // クリアして再描画
 
-  ['today', 'weekly'].forEach(type => {
-    const listEl = document.getElementById('list-' + type);
-    listEl.innerHTML = '';
+  // 各セクションのカードを生成
+  data.sections.forEach(sec => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-title">
+        <div class="card-title-left">
+          <span>${escapeHTML(sec.title)}</span>
+          <button class="edit-btn-title" onclick="renameSection('${sec.id}')">✎</button>
+        </div>
+        <button class="edit-btn-title del-section-btn" onclick="deleteSection('${sec.id}')">🗑</button>
+      </div>
+      <div id="list-${sec.id}"></div>
+      <div class="add-area">
+        <div class="add-area-row">
+          <input type="text" id="input-${sec.id}" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('${sec.id}')">
+          <button onclick="addTask('${sec.id}')">追加</button>
+        </div>
+        <div class="add-area-row">
+          <div class="date-input-wrap">
+            <span class="date-icon">期限:</span>
+            <input type="date" id="due-${sec.id}">
+          </div>
+          <select id="repeat-${sec.id}" class="repeat-select">
+            <option value="none">1回のみ</option>
+            <option value="daily">毎日</option>
+            <option value="weekly">毎週</option>
+          </select>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+
+    const listEl = document.getElementById('list-' + sec.id);
     
+    // このセクションのタスクをフィルタリングして表示
     const visible = data.tasks.filter(t => {
-      if (t.type !== type) return false;
+      if (t.type !== sec.id) return false;
       const createdDate = t.createdAt; 
       if (dStr < createdDate) return false; 
       
@@ -496,6 +517,7 @@ function render() {
       listEl.appendChild(div);
     });
   });
+
   document.getElementById('reflection').value = localStorage.getItem('refl_' + dStr) || '';
   applySettings(); buildSwatches(); 
   calcStreak();
@@ -555,16 +577,16 @@ function renderArchive() {
   });
 }
 
-function addTask(type) {
-  const input = document.getElementById('input-' + type);
-  const dueInput = document.getElementById('due-' + type);
-  const repeatInput = document.getElementById('repeat-' + type);
+function addTask(secId) {
+  const input = document.getElementById('input-' + secId);
+  const dueInput = document.getElementById('due-' + secId);
+  const repeatInput = document.getElementById('repeat-' + secId);
   
   if (!input.value.trim()) return;
   
   data.tasks.push({ 
     text: input.value.trim(), 
-    type: type, 
+    type: secId, 
     createdAt: getDStr(current), 
     completedAt: null, 
     doneDates: [],
