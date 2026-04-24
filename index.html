@@ -24,8 +24,10 @@ body { font-family: var(--app-font); overscroll-behavior-y: none; background: #0
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.05); z-index: 0; pointer-events: none; }
 
 .app-container { 
-  position: relative; z-index: 1; max-width: 500px; margin: 0 auto; height: 100vh; overflow-y: auto;
-  padding: calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 20px);
+  position: relative; z-index: 1; max-width: 500px; margin: 0 auto; 
+  /* スマホブラウザの高さ問題を解消し、下部に余裕を持たせる */
+  height: 100dvh; overflow-y: auto;
+  padding: calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 120px);
   display: flex; flex-direction: column; gap: 10px;
 }
 
@@ -37,7 +39,6 @@ body { font-family: var(--app-font); overscroll-behavior-y: none; background: #0
 .header { padding: 10px; display: flex; align-items: center; justify-content: space-between; gap:5px; }
 .header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; }
 
-/* 日付ナビゲーション周りのスタイルを改善 */
 .date-nav-btn { background: none; border: none; font-size: 20px; padding: 12px 20px; color: #555; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 .date-nav-btn:active { transform: scale(0.8); }
 .date-wrap { position: relative; margin: 0 5px; }
@@ -294,7 +295,8 @@ function render() {
       if (dStr < createdDate) return false; 
       
       if (t.completedAt) {
-        const compDate = getDStr(new Date(t.completedAt));
+        // 古いデータ（ISO形式）との互換性を保ちつつ比較
+        const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
         return dStr >= createdDate && dStr <= compDate;
       } else {
         return dStr >= createdDate;
@@ -308,7 +310,13 @@ function render() {
       
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
       cb.onchange = () => {
-        if (cb.checked) { t.completedAt = new Date().toISOString(); showToast(); } else { t.completedAt = null; }
+        if (cb.checked) { 
+          // 現実の今日ではなく、カレンダーで選択中の日付を完了日として保存
+          t.completedAt = getDStr(current); 
+          showToast(); 
+        } else { 
+          t.completedAt = null; 
+        }
         save(); render();
         if(document.getElementById('archive-modal').classList.contains('show')) renderArchive();
       };
@@ -359,10 +367,15 @@ function setArchFilter(f) { currentArchFilter = f; document.querySelectorAll('.f
 function renderArchive() {
   const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
   let completed = data.tasks.filter(t => t.completedAt);
-  completed.sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  completed.sort((a, b) => {
+    const dA = a.completedAt.includes('T') ? getDStr(new Date(a.completedAt)) : a.completedAt;
+    const dB = b.completedAt.includes('T') ? getDStr(new Date(b.completedAt)) : b.completedAt;
+    return dB.localeCompare(dA);
+  });
+  
   const todayStr = getDStr(new Date());
   completed = completed.filter(t => {
-    const compDate = getDStr(new Date(t.completedAt));
+    const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
     if (currentArchFilter === 'day') return compDate === todayStr;
     const d = new Date(compDate.replace(/-/g, '/'));
     const diffDays = (new Date(todayStr.replace(/-/g, '/')) - d) / (1000 * 60 * 60 * 24);
@@ -373,7 +386,7 @@ function renderArchive() {
   if(!completed.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">該当する完了タスクはありません</div>`; return; }
   completed.forEach(t => {
     const div = document.createElement('div'); div.className = 'task-item';
-    const compDateStr = getDStr(new Date(t.completedAt)).replace(/-/g,'/');
+    const compDateStr = (t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt).replace(/-/g,'/');
     div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${escapeHTML(t.text)}</span><span class="due-badge" style="background:#ccc">${compDateStr}完了</span>`;
     div.querySelector('.cb').onchange = () => { t.completedAt = null; save(); render(); renderArchive(); };
     listEl.appendChild(div);
