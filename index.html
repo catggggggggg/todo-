@@ -47,7 +47,6 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; }
 .date-badge { font-size: 10px; color: #999; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
 
-/* トーストの背景色をテーマカラーに変更 */
 #toast { 
   position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
   background: var(--accent-color); color: #fff; 
@@ -186,7 +185,9 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
 <script>
 let current = new Date();
-const storageKey = 'todo_final_v20'; 
+
+// もう名前を変えないための「永久保存用キー」
+const storageKey = 'todo_app_permanent_data'; 
 
 const presets = [
   { bg: 'linear-gradient(135deg,#fde8f0,#fbc8d8)', color: '#ec4899' }, 
@@ -209,9 +210,16 @@ const praiseMessages = [
   "キレキレだね！", "今日も絶好調！"
 ];
 
-let data = JSON.parse(localStorage.getItem(storageKey)) || JSON.parse(localStorage.getItem('todo_final_v19')) || {
-  tasks: [], uploads: [], settings: { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95 }
-};
+// ▼ 過去の「v22, v21, v20, v19...」に取り残されたデータを片っ端から探して救出する処理
+let data = JSON.parse(localStorage.getItem(storageKey)) || 
+           JSON.parse(localStorage.getItem('todo_final_v22')) || 
+           JSON.parse(localStorage.getItem('todo_final_v21')) || 
+           JSON.parse(localStorage.getItem('todo_final_v20')) || 
+           JSON.parse(localStorage.getItem('todo_final_v19')) || 
+           { tasks: [], uploads: [], settings: { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95 } };
+
+// 救出したデータを、永久保存箱に入れ直す
+localStorage.setItem(storageKey, JSON.stringify(data));
 
 let currentArchFilter = 'day';
 
@@ -241,12 +249,14 @@ function render() {
   ['today', 'weekly'].forEach(type => {
     const listEl = document.getElementById('list-' + type);
     listEl.innerHTML = '';
+    
+    // 今日やること・今週やることに関わらず、未完了なら持ち越す
     const visible = data.tasks.filter(t => {
       if (t.type !== type) return false;
       const targetDate = t.createdAt; 
       if (dStr < targetDate) return false;
       if (t.completedAt && dStr > targetDate) return false; 
-      if (!t.completedAt && dStr > targetDate && type === 'today') return true; 
+      if (!t.completedAt && dStr > targetDate) return true; 
       return dStr === targetDate;
     });
 
