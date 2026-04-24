@@ -59,58 +59,24 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
   justify-self: end; 
 }
 
-/* ★ カレンダー周りのレイアウトを少し調整しました */
-.date-nav-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center; 
-  grid-column: 2; 
-}
-.date-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
+.date-nav-container { display: flex; flex-direction: column; align-items: center; justify-content: center; grid-column: 2; }
+.date-row { display: flex; align-items: center; justify-content: center; width: 100%; }
 .date-nav-btn { background: none; border: none; font-size: 20px; padding: 10px; color: #555; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 .date-nav-btn:active { transform: scale(0.8); }
 .date-wrap { position: relative; margin: 0 5px; }
 .date-label { font-size: 15px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); padding: 8px 15px; border-radius: 20px; white-space: nowrap; }
 #date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-/* ★ 今日に戻るボタンのデザイン */
-.reset-today-btn {
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--accent-color);
-  background: rgba(0,0,0,0.05);
-  border: none;
-  border-radius: 10px;
-  padding: 3px 10px;
-  margin-top: 2px;
-  cursor: pointer;
-  transition: 0.2s;
-}
+.reset-today-btn { font-size: 10px; font-weight: 800; color: var(--accent-color); background: rgba(0,0,0,0.05); border: none; border-radius: 10px; padding: 3px 10px; margin-top: 2px; cursor: pointer; transition: 0.2s; }
 .reset-today-btn:active { transform: scale(0.9); }
 
-.card-title { 
-  font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; 
-  text-transform: uppercase; letter-spacing: 1px; 
-  display: flex; align-items: center; justify-content: space-between;
-}
+.card-title { font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: space-between; }
 .card-title-left { display: flex; align-items: center; gap: 5px; }
 .edit-btn-icon { background: none; border: none; color: #aaa; font-size: 14px; cursor: pointer; padding: 4px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 .edit-btn-icon:active { transform: scale(0.9); color: var(--accent-color); }
 .del-section-btn { color: #ff5252; margin-left: 5px; } 
 
-.add-section-btn {
-  width: 100%; padding: 15px; margin: 5px 0;
-  border: 2px dashed rgba(255,255,255,0.6); border-radius: 18px;
-  background: rgba(255,255,255, calc(var(--section-opacity) - 0.3)); 
-  font-weight: 800; color: #666; cursor: pointer;
-  transition: 0.3s; font-size: 14px;
-}
+.add-section-btn { width: 100%; padding: 15px; margin: 5px 0; border: 2px dashed rgba(255,255,255,0.6); border-radius: 18px; background: rgba(255,255,255, calc(var(--section-opacity) - 0.3)); font-weight: 800; color: #666; cursor: pointer; transition: 0.3s; font-size: 14px; }
 .add-section-btn:active { transform: scale(0.98); background: rgba(255,255,255,0.8); }
 
 .task-item { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
@@ -123,13 +89,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .repeat-badge { font-size: 9px; color: #777; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
 .del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; flex-shrink: 0; cursor: pointer; }
 
-#toast { 
-  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
-  background: var(--accent-color); color: #fff; 
-  padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 800; 
-  opacity: 0; transition: 0.3s; z-index: 5000; pointer-events: none;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-}
+#toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--accent-color); color: #fff; padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 800; opacity: 0; transition: 0.3s; z-index: 5000; pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
 #toast.show { opacity: 1; bottom: 120px; }
 
 .add-area { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; }
@@ -180,7 +140,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 <div class="app-container">
   <div class="card header">
     <button class="header-btn" onclick="openArchive()">≡</button>
-    
     <div class="date-nav-container">
       <div class="date-row">
         <button class="date-nav-btn" onclick="moveDate(-1)">◀︎</button>
@@ -192,7 +151,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
       </div>
       <button id="today-btn" class="reset-today-btn" onclick="goToToday()" style="display: none;">↺ 今日に戻る</button>
     </div>
-
     <div id="streak-badge">🔥 <span id="streak-count">0</span>日</div>
   </div>
 
@@ -216,7 +174,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
         <div class="color-list" id="swatch-list"></div>
         <div class="color-list" id="history-list" style="margin-top:10px;"></div>
       </div>
-      
       <div>
         <span class="label">背景のぼかし</span>
         <div class="op-btn-group">
@@ -225,7 +182,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
           <button id="blur-high" class="op-btn" onclick="setBlur('15px')">強</button>
         </div>
       </div>
-
       <div>
         <span class="label">パネルの透明度</span>
         <div class="op-btn-group">
@@ -234,7 +190,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
           <button id="op-low" class="op-btn" onclick="setOp(0.95)">低い</button>
         </div>
       </div>
-
       <div>
         <span class="label">フォント変更</span>
         <div class="op-btn-group">
@@ -400,17 +355,12 @@ function render() {
   const todayStr = getDStr(new Date());
   const days = ['日','月','火','水','木','金','土'];
   
-  // 日付ラベルとカレンダー入力値の同期
   document.getElementById('date-label').textContent = `${current.getFullYear()}年${current.getMonth()+1}月${current.getDate()}日(${days[current.getDay()]})`;
   document.getElementById('date-picker').value = dStr;
 
-  // 今日に戻るボタンの表示・非表示コントロール
   const todayBtn = document.getElementById('today-btn');
-  if (dStr !== todayStr) {
-    todayBtn.style.display = 'block';
-  } else {
-    todayBtn.style.display = 'none';
-  }
+  if (dStr !== todayStr) todayBtn.style.display = 'block';
+  else todayBtn.style.display = 'none';
 
   const container = document.getElementById('sections-container');
   container.innerHTML = '';
@@ -418,7 +368,6 @@ function render() {
   data.sections.forEach(sec => {
     const card = document.createElement('div');
     card.className = 'card';
-    
     card.innerHTML = `
       <div class="card-title">
         <div class="card-title-left">
@@ -426,12 +375,7 @@ function render() {
           <button class="edit-btn-icon" onclick="renameSection('${sec.id}')">✎</button>
         </div>
         <button class="edit-btn-icon del-section-btn" onclick="deleteSection('${sec.id}')">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            <line x1="10" y1="11" x2="10" y2="17"></line>
-            <line x1="14" y1="11" x2="14" y2="17"></line>
-          </svg>
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
         </button>
       </div>
       <div id="list-${sec.id}"></div>
@@ -469,14 +413,11 @@ function render() {
       div.className = 'task-item';
       
       let isDone = false;
-      if (t.repeat === 'daily') {
-        isDone = (t.doneDates || []).includes(dStr);
-      } else if (t.repeat === 'weekly') {
+      if (t.repeat === 'daily') isDone = (t.doneDates || []).includes(dStr);
+      else if (t.repeat === 'weekly') {
         const curWeekId = getWeekId(dStr);
         isDone = (t.doneDates || []).some(date => getWeekId(date) === curWeekId);
-      } else {
-        isDone = !!t.completedAt;
-      }
+      } else isDone = !!t.completedAt;
       
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
       cb.onchange = () => {
@@ -484,47 +425,34 @@ function render() {
           if (t.repeat === 'daily' || t.repeat === 'weekly') {
             if (!t.doneDates) t.doneDates = [];
             if (!t.doneDates.includes(dStr)) t.doneDates.push(dStr);
-          } else { t.completedAt = dStr; }
+          } else t.completedAt = dStr;
           showToast(); 
         } else { 
           if (t.repeat === 'daily') t.doneDates = t.doneDates.filter(d => d !== dStr);
           else if (t.repeat === 'weekly') {
             const cw = getWeekId(dStr);
             t.doneDates = t.doneDates.filter(d => getWeekId(d) !== cw);
-          } else { t.completedAt = null; }
+          } else t.completedAt = null;
         }
         save(); render();
       };
 
       const contentDiv = document.createElement('div'); contentDiv.className = 'task-content';
+      const textContainer = document.createElement('div'); textContainer.className = 'task-text-container';
+      const textSpan = document.createElement('span'); textSpan.className = 'task-text' + (isDone ? ' done' : ''); textSpan.textContent = t.text;
       
-      const textContainer = document.createElement('div');
-      textContainer.className = 'task-text-container';
-
-      const textSpan = document.createElement('span'); 
-      textSpan.className = 'task-text' + (isDone ? ' done' : '');
-      textSpan.textContent = t.text;
+      const editBtn = document.createElement('button'); editBtn.className = 'edit-btn-icon'; editBtn.innerHTML = '✎'; editBtn.style.opacity = '0.6'; editBtn.onclick = () => renameTask(t);
       
-      const editBtn = document.createElement('button');
-      editBtn.className = 'edit-btn-icon';
-      editBtn.innerHTML = '✎';
-      editBtn.style.opacity = '0.6';
-      editBtn.onclick = () => renameTask(t);
-      
-      textContainer.appendChild(textSpan);
-      textContainer.appendChild(editBtn);
-      
+      textContainer.appendChild(textSpan); textContainer.appendChild(editBtn);
       if (t.repeat !== 'none') {
         const badge = document.createElement('span'); badge.className = 'repeat-badge';
-        badge.textContent = t.repeat === 'daily' ? '毎日' : '毎週';
-        textContainer.appendChild(badge);
+        badge.textContent = t.repeat === 'daily' ? '毎日' : '毎週'; textContainer.appendChild(badge);
       }
       contentDiv.appendChild(textContainer);
 
       if(t.dueDate) {
         const due = document.createElement('span'); due.className = 'due-badge';
-        due.textContent = '期限: ' + t.dueDate.replace(/-/g, '/');
-        contentDiv.appendChild(due);
+        due.textContent = '期限: ' + t.dueDate.replace(/-/g, '/'); contentDiv.appendChild(due);
       }
 
       const del = document.createElement('button'); del.className = 'del-btn'; del.innerHTML = '×';
@@ -540,24 +468,8 @@ function render() {
 }
 
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
-
-// ★ カレンダーで「クリア・リセット」が押されたら、当日に戻るように修正
-function jumpDate(v) { 
-  if (v) {
-    current = new Date(v.replace(/-/g, '/')); 
-  } else {
-    // 値が空になった（リセットされた）時は今日にする
-    current = new Date();
-  }
-  render(); 
-}
-
-// ★ ダイレクトに今日に戻る関数
-function goToToday() {
-  current = new Date();
-  render();
-}
-
+function jumpDate(v) { if (v) current = new Date(v.replace(/-/g, '/')); else current = new Date(); render(); }
+function goToToday() { current = new Date(); render(); }
 function openArchive() { document.getElementById('archive-modal').classList.add('show'); renderArchive(); }
 function closeArchive() { document.getElementById('archive-modal').classList.remove('show'); }
 function setArchFilter(f) { currentArchFilter = f; document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active')); document.getElementById('flt-'+f).classList.add('active'); renderArchive(); }
@@ -595,41 +507,21 @@ function renderArchive() {
 }
 
 function addTask(secId) {
-  const input = document.getElementById('input-' + secId);
-  const due = document.getElementById('due-' + secId);
-  const repeat = document.getElementById('repeat-' + secId);
+  const input = document.getElementById('input-' + secId); const due = document.getElementById('due-' + secId); const repeat = document.getElementById('repeat-' + secId);
   if (!input.value.trim()) return;
-  data.tasks.push({ 
-    text: input.value.trim(), type: secId, createdAt: getDStr(current), 
-    completedAt: null, doneDates: [], repeat: repeat.value, dueDate: due.value || null 
-  });
+  data.tasks.push({ text: input.value.trim(), type: secId, createdAt: getDStr(current), completedAt: null, doneDates: [], repeat: repeat.value, dueDate: due.value || null });
   input.value = ''; due.value = ''; repeat.value = 'none'; save(); render();
 }
 
 function applySettings() {
-  const bg = document.getElementById('bg-layer');
-  const s = data.settings;
-  if (s.bgType === 'image') {
-    bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center';
-    document.documentElement.style.setProperty('--accent-color', '#4a90e2');
-  } else {
-    bg.style.background = s.bg; bg.style.backgroundSize = 'cover';
-    document.documentElement.style.setProperty('--accent-color', s.themeColor || '#4a90e2');
-  }
-  document.documentElement.style.setProperty('--section-opacity', s.op);
-  document.documentElement.style.setProperty('--bg-blur', s.blur);
-  document.documentElement.style.setProperty('--app-font', s.font);
-
+  const bg = document.getElementById('bg-layer'); const s = data.settings;
+  if (s.bgType === 'image') { bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center'; document.documentElement.style.setProperty('--accent-color', '#4a90e2'); } 
+  else { bg.style.background = s.bg; bg.style.backgroundSize = 'cover'; document.documentElement.style.setProperty('--accent-color', s.themeColor || '#4a90e2'); }
+  document.documentElement.style.setProperty('--section-opacity', s.op); document.documentElement.style.setProperty('--bg-blur', s.blur); document.documentElement.style.setProperty('--app-font', s.font);
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
-  if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
-  if (s.op === 0.6) document.getElementById('op-mid').classList.add('active');
-  if (s.op === 0.95) document.getElementById('op-low').classList.add('active');
-  if (s.blur === '0px') document.getElementById('blur-none').classList.add('active');
-  if (s.blur === '5px') document.getElementById('blur-mid').classList.add('active');
-  if (s.blur === '15px') document.getElementById('blur-high').classList.add('active');
-  if (s.font.includes('sans-serif') && !s.font.includes('Maru')) document.getElementById('font-sans').classList.add('active');
-  if (s.font.includes('Maru')) document.getElementById('font-maru').classList.add('active');
-  if (s.font.includes('serif') && !s.font.includes('sans')) document.getElementById('font-serif').classList.add('active');
+  if (s.op === 0.3) document.getElementById('op-high').classList.add('active'); if (s.op === 0.6) document.getElementById('op-mid').classList.add('active'); if (s.op === 0.95) document.getElementById('op-low').classList.add('active');
+  if (s.blur === '0px') document.getElementById('blur-none').classList.add('active'); if (s.blur === '5px') document.getElementById('blur-mid').classList.add('active'); if (s.blur === '15px') document.getElementById('blur-high').classList.add('active');
+  if (s.font.includes('sans-serif') && !s.font.includes('Maru')) document.getElementById('font-sans').classList.add('active'); if (s.font.includes('Maru')) document.getElementById('font-maru').classList.add('active'); if (s.font.includes('serif') && !s.font.includes('sans')) document.getElementById('font-serif').classList.add('active');
 }
 
 function setBg(bg, type, color) { data.settings.bg = bg; data.settings.bgType = type; data.settings.themeColor = color; save(); render(); }
@@ -639,29 +531,12 @@ function setFont(v) { data.settings.font = v; save(); render(); }
 
 function buildSwatches() {
   const list = document.getElementById('swatch-list'); list.innerHTML = '';
-  presets.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === p.bg && data.settings.bgType === 'css' ? ' active' : '');
-    div.style.background = p.bg; div.onclick = () => setBg(p.bg, 'css', p.color);
-    list.appendChild(div);
-  });
-  const up = document.createElement('label'); up.className = 'swatch'; up.style.border = '1.5px dashed #aaa';
-  up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa">＋</span><input type="file" accept="image/*" style="display:none">`;
-  up.querySelector('input').onchange = (e) => {
-    const reader = new FileReader(); reader.onload = (ev) => initImageEditor(ev.target.result); reader.readAsDataURL(e.target.files[0]);
-    e.target.value = '';
-  };
+  presets.forEach(p => { const div = document.createElement('div'); div.className = 'swatch' + (data.settings.bg === p.bg && data.settings.bgType === 'css' ? ' active' : ''); div.style.background = p.bg; div.onclick = () => setBg(p.bg, 'css', p.color); list.appendChild(div); });
+  const up = document.createElement('label'); up.className = 'swatch'; up.style.border = '1.5px dashed #aaa'; up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa">＋</span><input type="file" accept="image/*" style="display:none">`;
+  up.querySelector('input').onchange = (e) => { const reader = new FileReader(); reader.onload = (ev) => initImageEditor(ev.target.result); reader.readAsDataURL(e.target.files[0]); e.target.value = ''; };
   list.appendChild(up);
-
   const histList = document.getElementById('history-list'); histList.innerHTML = '';
-  (data.uploads || []).forEach(item => {
-    const imgSrc = typeof item === 'string' ? item : item.img;
-    const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === imgSrc ? ' active' : '');
-    div.style.backgroundImage = `url(${imgSrc})`; div.style.backgroundSize = 'cover';
-    div.onclick = () => setBg(imgSrc, 'image', '#4a90e2');
-    histList.appendChild(div);
-  });
+  (data.uploads || []).forEach(item => { const imgSrc = typeof item === 'string' ? item : item.img; const div = document.createElement('div'); div.className = 'swatch' + (data.settings.bg === imgSrc ? ' active' : ''); div.style.backgroundImage = `url(${imgSrc})`; div.style.backgroundSize = 'cover'; div.onclick = () => setBg(imgSrc, 'image', '#4a90e2'); histList.appendChild(div); });
 }
 
 const canvas = document.getElementById('img-canvas'); const ctx = canvas.getContext('2d');
@@ -701,11 +576,30 @@ canvas.addEventListener('touchmove', e => {
 canvas.addEventListener('touchend', () => { lastPosX = posX; lastPosY = posY; lastScale = scale; });
 
 function closeModal() { document.getElementById('img-modal').classList.remove('show'); currentImgObj = null; }
+
+// ★ ズームのズレを解消するための修正部分
 function confirmImage() {
-  const url = canvas.toDataURL("image/jpeg", 0.6);
-  if(!data.uploads) data.uploads = []; data.uploads.unshift({ img: url, color: '#4a90e2' });
-  if(data.uploads.length > 3) data.uploads.pop();
-  setBg(url, 'image', '#4a90e2'); closeModal();
+  // 背景レイヤーがCSSで「画面サイズ＋上下左右20px(合計40px)広め」に設定されているため、
+  // 保存するキャンバスもあらかじめ40px大きく作ってから画像を切り取ります。
+  const expCanvas = document.createElement('canvas');
+  const eCtx = expCanvas.getContext('2d');
+  const padding = 40; // ぼかし用の隠し余白分
+  
+  expCanvas.width = canvas.width + padding;
+  expCanvas.height = canvas.height + padding;
+  
+  // 描画位置を中心に合わせつつ、ユーザーが動かした座標(posX, posY)も反映
+  eCtx.translate(expCanvas.width / 2 + posX, expCanvas.height / 2 + posY);
+  eCtx.scale(scale, scale);
+  eCtx.drawImage(currentImgObj, -currentImgObj.naturalWidth / 2, -currentImgObj.naturalHeight / 2);
+  
+  const url = expCanvas.toDataURL("image/jpeg", 0.6);
+  if(!data.uploads) data.uploads = []; 
+  data.uploads.unshift({ img: url, color: '#4a90e2' });
+  if(data.uploads.length > 3) data.uploads.pop(); // 履歴は直近3件まで
+  
+  setBg(url, 'image', '#4a90e2'); 
+  closeModal();
 }
 
 document.getElementById('reflection').oninput = (e) => localStorage.setItem('refl_' + getDStr(current), e.target.value);
