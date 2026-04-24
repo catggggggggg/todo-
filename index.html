@@ -18,7 +18,6 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-/* 全体スクロールをブラウザの自然な挙動に変更し、見切れ問題を解消 */
 body { font-family: var(--app-font); background: #000; color: #1a1a1a; transition: font-family 0.3s; min-height: 100vh; min-height: 100dvh; }
 
 #bg-layer { position: fixed; inset: -20px; background: linear-gradient(135deg,#fde8f0,#fbc8d8); background-size: cover; background-position: center; z-index: -1; transition: background 0.3s, filter 0.3s; filter: blur(var(--bg-blur)); }
@@ -26,7 +25,6 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 
 .app-container { 
   position: relative; z-index: 1; max-width: 500px; margin: 0 auto; 
-  /* 画面下部に十分な余白を取り、設定が完全に表示されるようにする */
   padding: calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 80px);
   display: flex; flex-direction: column; gap: 10px;
 }
@@ -272,7 +270,6 @@ function toggleSettings() {
   if (content.style.display === 'none') {
     content.style.display = 'grid';
     chevron.textContent = '▲';
-    // パネルを開いた時に自然に下へスクロール
     setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 50);
   } else {
     content.style.display = 'none';
@@ -307,9 +304,8 @@ function render() {
       const div = document.createElement('div');
       div.className = 'task-item';
       
-      // 表示中のカレンダー日付(dStr)が、完了日(compDate)と全く同じ場合のみ完了状態(車線あり)にする
-      const compDate = t.completedAt ? (t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt) : null;
-      const isDone = compDate === dStr;
+      // 完了日が記録されていれば、表示される全期間（追加日〜完了日）で車線を引く
+      const isDone = !!t.completedAt;
       
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
       cb.onchange = () => {
