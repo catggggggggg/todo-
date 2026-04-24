@@ -17,114 +17,118 @@
   --bg-blur: 0px;
 }
 
-/* 全体リセット */
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 body { font-family: var(--app-font); background: #000; color: #1a1a1a; transition: font-family 0.3s; min-height: 100vh; min-height: 100dvh; }
 
-/* 背景レイヤー */
 #bg-layer { position: fixed; inset: -20px; background: linear-gradient(135deg,#fde8f0,#fbc8d8); background-size: cover; background-position: center; z-index: -1; transition: background 0.3s, filter 0.3s; filter: blur(var(--bg-blur)); }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.05); z-index: 0; pointer-events: none; }
 
-/* メインコンテナ */
 .app-container { 
   position: relative; z-index: 1; max-width: 500px; margin: 0 auto; 
   padding: calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 80px);
   display: flex; flex-direction: column; gap: 10px;
 }
 
-/* カード共通 */
 .card { 
   background: rgba(255,255,255, var(--section-opacity)); backdrop-filter: blur(1px); -webkit-backdrop-filter: blur(1px);
   border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); transition: background 0.3s;
-  overflow: hidden; /* はみ出し防止 */
 }
 
-/* ヘッダー：3カラム構成でストリークを右端に固定 */
+/* ヘッダーのレイアウトをgridに変更し、日付を中央、ストリークを右に配置 */
 .header { 
-  padding: 8px 15px; 
-  display: flex; 
+  padding: 10px; 
+  display: grid; 
+  grid-template-columns: 44px 1fr auto; 
   align-items: center; 
-  justify-content: space-between; 
+  gap: 5px; 
 }
+.header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; grid-column: 1; }
 
-.header-left { width: 44px; display: flex; align-items: center; }
-.header-right { width: auto; min-width: 44px; display: flex; align-items: center; justify-content: flex-end; }
-
-.header-btn { border: none; background: none; font-size: 24px; cursor: pointer; color: #333; padding: 5px 0; }
-
-/* ストリークバッジ：楕円背景を削除、枠内に収める */
+/* 連続達成バッジのCSSを修正：背景を消し、余白と色を調整 */
 #streak-badge { 
-  font-size: 13px; 
+  font-size: 12px; 
   font-weight: 800; 
-  color: #555; 
+  color: #555; /* 他のテキストに馴染む色に変更 */
+  /* background: rgba(255,107,107,0.1); 削除 */
+  padding: 0 5px; /* 余白を調整 */
+  /* border-radius: 15px; 削除 */
   display: flex; 
   align-items: center; 
-  gap: 3px; 
-  white-space: nowrap; /* 改行禁止 */
+  gap: 2px; 
+  grid-column: 3; /* グリッドの3列目に配置 */
+  justify-self: end; /* 列内で右寄せ */
 }
 
-/* 中央の日付ナビゲーション */
+/* 日付ナビゲーションのコンテナを追加 */
 .date-nav-container {
-  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* コンテナ内で中央揃え */
+  grid-column: 2; /* グリッドの2列目（中央）に配置 */
 }
-.date-nav-btn { background: none; border: none; font-size: 18px; padding: 10px; color: #555; cursor: pointer; transition: 0.2s; }
+
+.date-nav-btn { background: none; border: none; font-size: 20px; padding: 12px 10px; /* 余白を調整 */ color: #555; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 .date-nav-btn:active { transform: scale(0.8); }
-.date-wrap { position: relative; }
-.date-label { font-size: 14px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; background: rgba(0,0,0,0.04); padding: 7px 14px; border-radius: 20px; white-space: nowrap; }
+.date-wrap { position: relative; margin: 0 5px; }
+.date-label { font-size: 15px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); padding: 8px 15px; border-radius: 20px; white-space: nowrap; }
 #date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-/* タスクリスト関連 */
 .card-title { font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; text-transform: uppercase; letter-spacing: 1px; }
+
 .task-item { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
 .cb { width: 22px; height: 22px; accent-color: var(--accent-color); transition: 0.3s; flex-shrink: 0; }
 .task-content { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .task-text { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-text.done { text-decoration: line-through; color: #aaa; }
-.due-badge { font-size: 10px; font-weight: bold; color: #fff; background: #ff6b6b; padding: 3px 6px; border-radius: 6px; white-space: nowrap; }
-.edit-btn { background: none; border: none; color: #999; font-size: 16px; padding: 5px; cursor: pointer; }
-.del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; cursor: pointer; }
+.due-badge { font-size: 10px; font-weight: bold; color: #fff; background: #ff6b6b; padding: 3px 6px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+.edit-btn { background: none; border: none; color: #999; font-size: 16px; padding: 5px; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
+.del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; flex-shrink: 0; cursor: pointer; }
 
-/* 追加エリア */
+#toast { 
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
+  background: var(--accent-color); color: #fff; 
+  padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 800; 
+  opacity: 0; transition: 0.3s; z-index: 5000; pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+#toast.show { opacity: 1; bottom: 120px; }
+
 .add-area { display: flex; gap: 6px; padding: 10px 12px; align-items: center; }
 .add-area input[type="text"] { flex: 1; background: rgba(0,0,0,0.05); border: none; border-radius: 8px; padding: 10px; font-size: 14px; outline: none; min-width: 0; }
 .date-input-wrap { display: flex; align-items: center; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 0 5px 0 8px; height: 38px;}
-.date-icon { font-size: 11px; font-weight: bold; color: #777; }
+.date-icon { font-size: 11px; font-weight: bold; color: #777; white-space: nowrap; }
 .add-area input[type="date"] { background: transparent; border: none; font-size: 12px; outline: none; color: #555; width: 100px; }
-.add-area button { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 0 12px; height: 38px; font-weight: 700; cursor: pointer; font-size: 13px; }
+.add-area button { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 0 12px; height: 38px; font-weight: 700; transition: 0.3s; flex-shrink: 0; cursor: pointer; font-size: 13px; }
 
-/* メモ */
 .reflection-box { width: calc(100% - 30px); height: 80px; background: rgba(255,255,255,0.3); border: none; border-radius: 12px; padding: 10px; font-size: 14px; margin: 8px 15px 15px; outline: none; resize: none; font-family: inherit; }
 
-/* 設定 */
+.settings-card { overflow: hidden; }
 .settings-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 800; font-size: 14px; color: #555; }
 .settings-grid { padding: 0 15px 15px 15px; display: grid; gap: 15px; border-top: 1px solid rgba(0,0,0,0.05); }
 .label { font-size: 11px; font-weight: 800; color: #777; margin-bottom: 8px; display: block; }
-.color-list { display: flex; flex-wrap: wrap; gap: 10px; }
-.swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; position: relative; transition: 0.2s; }
+.color-list { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background-size: cover; position: relative; transition: 0.2s; }
 .swatch.active { border-color: var(--accent-color); transform: scale(1.1); }
 .op-btn-group { display: flex; gap: 10px; }
-.op-btn { flex: 1; height: 40px; border-radius: 10px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 13px; color: #444; cursor: pointer; }
+.op-btn { flex: 1; height: 40px; border-radius: 10px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 13px; color: #444; transition: 0.3s; font-family: inherit; cursor: pointer; }
 .op-btn.active { background: var(--accent-color); color: white; }
 
-/* トースト */
-#toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--accent-color); color: #fff; padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 800; opacity: 0; transition: 0.3s; z-index: 5000; pointer-events: none; }
-#toast.show { opacity: 1; bottom: 120px; }
-
-/* モーダル */
-#archive-modal { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 20px; }
+#archive-modal { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 20px; }
 #archive-modal.show { display: flex !important; }
-.archive-card { background: #fff; width: 100%; max-width: 500px; max-height: 85vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; }
+.archive-card { background: #fff; width: 100%; max-width: 500px; max-height: 85vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
 .archive-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
-.flt-btn { flex: 1; padding: 8px; border-radius: 10px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 12px; cursor: pointer; }
+.archive-header h3 { font-size: 16px; margin: 0; color: #333; }
+.filter-group { display: flex; gap: 10px; padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); background: #fafafa; }
+.flt-btn { flex: 1; padding: 8px; border-radius: 10px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 12px; color: #666; cursor: pointer; transition: 0.3s; font-family: inherit; }
 .flt-btn.active { background: var(--accent-color); color: #fff; }
 #archive-list { overflow-y: auto; flex: 1; padding-bottom: 20px; }
 
-#img-modal { display: none; position: fixed; inset: 0; z-index: 3000; background: #000; align-items: center; justify-content: center; }
+#img-modal { display: none; position: fixed; inset: 0; z-index: 3000; background: #000; align-items: center; justify-content: center; overflow: hidden; }
+#img-modal.show { display: flex !important; }
 #img-canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; touch-action: none; }
-.modal-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit;}
+.editor-overlay { position: absolute; bottom: calc(env(safe-area-inset-bottom) + 30px); left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 10; pointer-events: none; }
+.modal-btns { display: flex; gap: 15px; width: 100%; pointer-events: auto; }
+.modal-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-family: inherit;}
 </style>
 </head>
 <body>
@@ -134,10 +138,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 
 <div class="app-container">
   <div class="card header">
-    <div class="header-left">
-      <button class="header-btn" onclick="openArchive()">≡</button>
-    </div>
-    
+    <button class="header-btn" onclick="openArchive()">≡</button>
     <div class="date-nav-container">
       <button class="date-nav-btn" onclick="moveDate(-1)">◀︎</button>
       <div class="date-wrap">
@@ -146,10 +147,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
       </div>
       <button class="date-nav-btn" onclick="moveDate(1)">▶︎</button>
     </div>
-
-    <div class="header-right">
-      <div id="streak-badge">🔥 <span id="streak-count">0</span>日</div>
-    </div>
+    <div id="streak-badge">🔥 <span id="streak-count">0</span>日</div>
   </div>
 
   <div class="card">
@@ -183,7 +181,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
     <textarea id="reflection" class="reflection-box" placeholder="今日はどんな一日だった？"></textarea>
   </div>
 
-  <div class="card">
+  <div class="card settings-card">
     <div class="settings-header" onclick="toggleSettings()">
       <span>⚙️ 詳細設定</span>
       <span id="settings-chevron">▼</span>
@@ -194,6 +192,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
         <div class="color-list" id="swatch-list"></div>
         <div class="color-list" id="history-list" style="margin-top:10px;"></div>
       </div>
+      
       <div>
         <span class="label">背景のぼかし</span>
         <div class="op-btn-group">
@@ -202,12 +201,22 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
           <button id="blur-high" class="op-btn" onclick="setBlur('15px')">強</button>
         </div>
       </div>
+
       <div>
-        <span class="label">透明度</span>
+        <span class="label">パネルの透明度</span>
         <div class="op-btn-group">
-          <button id="op-high" class="op-btn" onclick="setOp(0.3)">高</button>
+          <button id="op-high" class="op-btn" onclick="setOp(0.3)">高い</button>
           <button id="op-mid" class="op-btn" onclick="setOp(0.6)">中</button>
-          <button id="op-low" class="op-btn" onclick="setOp(0.95)">低</button>
+          <button id="op-low" class="op-btn" onclick="setOp(0.95)">低い</button>
+        </div>
+      </div>
+
+      <div>
+        <span class="label">フォント変更</span>
+        <div class="op-btn-group">
+          <button id="font-sans" class="op-btn" onclick="setFont('-apple-system, sans-serif')">標準</button>
+          <button id="font-maru" class="op-btn" onclick="setFont('\'Hiragino Maru Gothic ProN\', \'VAG Rounded\', sans-serif')">丸ゴシック</button>
+          <button id="font-serif" class="op-btn" onclick="setFont('\'Hiragino Mincho ProN\', \'Yu Mincho\', serif')">明朝体</button>
         </div>
       </div>
     </div>
@@ -219,12 +228,12 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 <div id="archive-modal">
   <div class="archive-card">
     <div class="archive-header">
-      <h3 style="font-size:16px;">過去の完了タスク</h3>
+      <h3>過去の完了タスク</h3>
       <button class="header-btn" onclick="closeArchive()">×</button>
     </div>
-    <div style="display:flex; gap:10px; padding:15px; background:#fafafa;">
+    <div class="filter-group">
       <button id="flt-day" class="flt-btn active" onclick="setArchFilter('day')">今日</button>
-      <button id="flt-week" class="flt-btn" onclick="setArchFilter('week')">7日間</button>
+      <button id="flt-week" class="flt-btn" onclick="setArchFilter('week')">過去7日間</button>
       <button id="flt-month" class="flt-btn" onclick="setArchFilter('month')">今月</button>
     </div>
     <div id="archive-list"></div>
@@ -233,29 +242,72 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 
 <div id="img-modal">
   <canvas id="img-canvas"></canvas>
-  <div style="position:absolute; bottom:50px; width:90%; display:flex; gap:15px; left:5%; z-index:10;">
-    <button class="modal-btn" style="background:rgba(255,255,255,0.2);color:#fff;" onclick="closeModal()">戻る</button>
-    <button class="modal-btn" style="background:var(--accent-color);color:#fff" onclick="confirmImage()">背景に設定</button>
+  <div class="editor-overlay">
+    <div style="color:#fff; font-size:14px; font-weight:bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 20px;">
+      ピンチで拡大縮小・ドラッグで移動
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);" onclick="closeModal()">キャンセル</button>
+      <button class="modal-btn" style="background:var(--accent-color);color:#fff" onclick="confirmImage()">背景に設定</button>
+    </div>
   </div>
 </div>
 
 <script>
 let current = new Date();
 const storageKey = 'todo_app_permanent_data'; 
+
 const presets = [
   { bg: 'linear-gradient(135deg,#fde8f0,#fbc8d8)', color: '#ec4899' }, 
   { bg: 'linear-gradient(135deg,#fef9c3,#fde68a)', color: '#eab308' }, 
   { bg: 'linear-gradient(135deg,#d1fae5,#a7f3d0)', color: '#10b981' }, 
   { bg: 'linear-gradient(135deg,#dbeafe,#bfdbfe)', color: '#3b82f6' }, 
-  { bg: 'linear-gradient(135deg,#ede9fe,#ddd6fe)', color: '#8b5cf6' }
+  { bg: 'linear-gradient(135deg,#ede9fe,#ddd6fe)', color: '#8b5cf6' }, 
+  { bg: 'linear-gradient(135deg,#ffedd5,#fed7aa)', color: '#f97316' }, 
+  { bg: 'linear-gradient(135deg,#fce7f3,#fbcfe8)', color: '#ec4899' }, 
+  { bg: 'linear-gradient(135deg,#ecfccb,#d9f99d)', color: '#84cc16' }, 
+  { bg: 'linear-gradient(135deg,#e0f2fe,#bae6fd)', color: '#0ea5e9' }  
 ];
 
+const praiseMessages = ["お疲れ様！", "その調子！", "すごい！", "頑張ったね！", "ナイス！"];
+
 let data = JSON.parse(localStorage.getItem(storageKey)) || { tasks: [], uploads: [], settings: {} };
-if(!data.settings.bg) data.settings = { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95, blur: '0px', font: '-apple-system' };
 
-function save() { localStorage.setItem(storageKey, JSON.stringify(data)); }
+if(!data.settings.bg) data.settings = { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95 };
+if(data.settings.blur === undefined) data.settings.blur = '0px';
+if(data.settings.font === undefined) data.settings.font = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+let currentArchFilter = 'day';
+
+function save() { 
+  try { localStorage.setItem(storageKey, JSON.stringify(data)); } 
+  catch (e) { alert("容量オーバーです。古い画像履歴を削除します。"); if(data.uploads.length > 0) data.uploads.pop(); save(); }
+}
+
 function getDStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); }
 
+function showToast() {
+  const t = document.getElementById('toast');
+  t.textContent = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function toggleSettings() {
+  const content = document.getElementById('settings-content');
+  const chevron = document.getElementById('settings-chevron');
+  if (content.style.display === 'none') {
+    content.style.display = 'grid';
+    chevron.textContent = '▲';
+    setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 50);
+  } else {
+    content.style.display = 'none';
+    chevron.textContent = '▼';
+  }
+}
+
+// 連続達成記録を計算する関数
 function calcStreak() {
   let count = 0;
   let tempD = new Date();
@@ -264,7 +316,12 @@ function calcStreak() {
   let yesterdayStr = getDStr(tempD);
 
   let doneDates = new Set();
-  data.tasks.forEach(t => { if(t.completedAt) doneDates.add(t.completedAt.split('T')[0]); });
+  data.tasks.forEach(t => {
+    if(t.completedAt) {
+      const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
+      doneDates.add(compDate);
+    }
+  });
 
   let currentCheck = todayStr;
   if (doneDates.has(todayStr)) { count++; currentCheck = yesterdayStr; } 
@@ -277,7 +334,6 @@ function calcStreak() {
     let prev = new Date(currentCheck.replace(/-/g, '/'));
     prev.setDate(prev.getDate() - 1);
     currentCheck = getDStr(prev);
-    if(count > 365) break; // 安全策
   }
   document.getElementById('streak-count').textContent = count;
 }
@@ -290,113 +346,230 @@ function render() {
   ['today', 'weekly'].forEach(type => {
     const listEl = document.getElementById('list-' + type);
     listEl.innerHTML = '';
+    
     const visible = data.tasks.filter(t => {
       if (t.type !== type) return false;
-      if (t.completedAt && t.completedAt.split('T')[0] !== dStr) return false;
-      return dStr >= t.createdAt;
+      const createdDate = t.createdAt; 
+      
+      if (dStr < createdDate) return false; 
+      
+      if (t.completedAt) {
+        const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
+        return dStr >= createdDate && dStr <= compDate;
+      } else {
+        return dStr >= createdDate;
+      }
     });
 
     visible.forEach(t => {
       const div = document.createElement('div');
       div.className = 'task-item';
+      
       const isDone = !!t.completedAt;
-      div.innerHTML = `
-        <input type="checkbox" class="cb" ${isDone ? 'checked' : ''}>
-        <div class="task-content">
-          <span class="task-text ${isDone ? 'done' : ''}">${t.text}</span>
-          ${t.dueDate ? `<span class="due-badge">期限: ${t.dueDate.slice(5).replace('-','/')}</span>` : ''}
-        </div>
-        <button class="edit-btn">✎</button>
-        <button class="del-btn">×</button>
-      `;
-      div.querySelector('.cb').onchange = (e) => {
-        t.completedAt = e.target.checked ? dStr : null;
-        if(e.target.checked) showToast();
+      
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
+      cb.onchange = () => {
+        if (cb.checked) { 
+          t.completedAt = getDStr(current); 
+          showToast(); 
+        } else { 
+          t.completedAt = null; 
+        }
         save(); render();
+        if(document.getElementById('archive-modal').classList.contains('show')) renderArchive();
       };
-      div.querySelector('.edit-btn').onclick = () => {
-        const nt = prompt("編集", t.text);
-        if(nt) { t.text = nt; save(); render(); }
+
+      const contentDiv = document.createElement('div'); contentDiv.className = 'task-content';
+      
+      const textSpan = document.createElement('span'); textSpan.className = 'task-text' + (isDone ? ' done' : '');
+      textSpan.textContent = t.text;
+      contentDiv.appendChild(textSpan);
+
+      if(t.dueDate) {
+        const dueSpan = document.createElement('span'); dueSpan.className = 'due-badge';
+        dueSpan.textContent = '期限: ' + t.dueDate.replace(/-/g, '/');
+        contentDiv.appendChild(dueSpan);
+      }
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'edit-btn';
+      editBtn.innerHTML = '✎';
+      editBtn.title = '編集';
+      editBtn.onclick = () => {
+        const newText = prompt("タスクを編集:", t.text);
+        if(newText !== null && newText.trim() !== "") { t.text = newText.trim(); save(); render(); }
       };
-      div.querySelector('.del-btn').onclick = () => {
-        data.tasks = data.tasks.filter(x => x !== t);
-        save(); render();
-      };
+
+      const del = document.createElement('button'); del.className = 'del-btn'; del.innerHTML = '×';
+      del.title = '削除';
+      del.onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
+      
+      div.appendChild(cb); 
+      div.appendChild(contentDiv); 
+      div.appendChild(editBtn); 
+      div.appendChild(del); 
       listEl.appendChild(div);
     });
   });
   document.getElementById('reflection').value = localStorage.getItem('refl_' + dStr) || '';
-  applySettings();
-  buildSwatches();
-  calcStreak();
-}
-
-function showToast() {
-  const t = document.getElementById('toast');
-  t.textContent = ["ナイス！", "お疲れ様！", "その調子！"][Math.floor(Math.random()*3)];
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+  applySettings(); buildSwatches(); 
+  calcStreak(); // ストリークを再計算して表示
 }
 
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
-function jumpDate(v) { if(v) current = new Date(v.replace(/-/g, '/')); render(); }
-function addTask(type) {
-  const inp = document.getElementById('input-' + type);
-  const due = document.getElementById('due-' + type);
-  if(!inp.value.trim()) return;
-  data.tasks.push({ text: inp.value.trim(), type: type, createdAt: getDStr(current), completedAt: null, dueDate: due.value || null });
-  inp.value = ''; due.value = ''; save(); render();
+function jumpDate(v) { if (!v) { current = new Date(); } else { current = new Date(v.replace(/-/g, '/')); } render(); }
+
+function openArchive() { document.getElementById('archive-modal').classList.add('show'); renderArchive(); }
+function closeArchive() { document.getElementById('archive-modal').classList.remove('show'); }
+function setArchFilter(f) { currentArchFilter = f; document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active')); document.getElementById('flt-'+f).classList.add('active'); renderArchive(); }
+
+function renderArchive() {
+  const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
+  let completed = data.tasks.filter(t => t.completedAt);
+  completed.sort((a, b) => {
+    const dA = a.completedAt.includes('T') ? getDStr(new Date(a.completedAt)) : a.completedAt;
+    const dB = b.completedAt.includes('T') ? getDStr(new Date(b.completedAt)) : b.completedAt;
+    return dB.localeCompare(dA);
+  });
+  
+  const todayStr = getDStr(new Date());
+  completed = completed.filter(t => {
+    const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
+    if (currentArchFilter === 'day') return compDate === todayStr;
+    const d = new Date(compDate.replace(/-/g, '/'));
+    const diffDays = (new Date(todayStr.replace(/-/g, '/')) - d) / (1000 * 60 * 60 * 24);
+    if (currentArchFilter === 'week') return diffDays >= 0 && diffDays <= 7;
+    if (currentArchFilter === 'month') return d.getMonth() === new Date().getMonth();
+    return true;
+  });
+  if(!completed.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">該当する完了タスクはありません</div>`; return; }
+  completed.forEach(t => {
+    const div = document.createElement('div'); div.className = 'task-item';
+    const compDateStr = (t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt).replace(/-/g,'/');
+    div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${escapeHTML(t.text)}</span><span class="due-badge" style="background:#ccc">${compDateStr}完了</span>`;
+    div.querySelector('.cb').onchange = () => { t.completedAt = null; save(); render(); renderArchive(); };
+    listEl.appendChild(div);
+  });
 }
 
-function toggleSettings() {
-  const c = document.getElementById('settings-content');
-  c.style.display = c.style.display === 'none' ? 'grid' : 'none';
-  document.getElementById('settings-chevron').textContent = c.style.display === 'none' ? '▼' : '▲';
+function addTask(type) {
+  const input = document.getElementById('input-' + type);
+  const dueInput = document.getElementById('due-' + type);
+  if (!input.value.trim()) return;
+  
+  data.tasks.push({ 
+    text: input.value.trim(), type: type, createdAt: getDStr(current), completedAt: null, 
+    dueDate: dueInput.value || null 
+  });
+  
+  input.value = ''; dueInput.value = ''; save(); render();
 }
 
 function applySettings() {
-  const s = data.settings;
   const bg = document.getElementById('bg-layer');
-  if(s.bgType === 'image') bg.style.backgroundImage = `url(${s.bg})`;
-  else bg.style.background = s.bg;
-  document.documentElement.style.setProperty('--accent-color', s.themeColor || '#4a90e2');
+  const s = data.settings;
+  
+  if (s.bgType === 'image') {
+    bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center';
+    document.documentElement.style.setProperty('--accent-color', '#4a90e2');
+  } else {
+    bg.style.background = s.bg; bg.style.backgroundSize = 'cover';
+    document.documentElement.style.setProperty('--accent-color', s.themeColor || '#4a90e2');
+  }
+  
   document.documentElement.style.setProperty('--section-opacity', s.op);
   document.documentElement.style.setProperty('--bg-blur', s.blur);
+  document.documentElement.style.setProperty('--app-font', s.font);
+  
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
+  if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
+  if (s.op === 0.6) document.getElementById('op-mid').classList.add('active');
+  if (s.op === 0.95) document.getElementById('op-low').classList.add('active');
+  if (s.blur === '0px') document.getElementById('blur-none').classList.add('active');
+  if (s.blur === '5px') document.getElementById('blur-mid').classList.add('active');
+  if (s.blur === '15px') document.getElementById('blur-high').classList.add('active');
+  if (s.font.includes('sans-serif') && !s.font.includes('Maru')) document.getElementById('font-sans').classList.add('active');
+  if (s.font.includes('Maru')) document.getElementById('font-maru').classList.add('active');
+  if (s.font.includes('serif') && !s.font.includes('sans')) document.getElementById('font-serif').classList.add('active');
 }
 
+function setBg(bg, type, color) { data.settings.bg = bg; data.settings.bgType = type; data.settings.themeColor = color; save(); render(); }
 function setOp(v) { data.settings.op = v; save(); render(); }
 function setBlur(v) { data.settings.blur = v; save(); render(); }
-function setBg(bg, type, color) { data.settings.bg = bg; data.settings.bgType = type; data.settings.themeColor = color; save(); render(); }
+function setFont(v) { data.settings.font = v; save(); render(); }
 
 function buildSwatches() {
   const list = document.getElementById('swatch-list'); list.innerHTML = '';
   presets.forEach(p => {
-    const d = document.createElement('div');
-    d.className = 'swatch' + (data.settings.bg === p.bg ? ' active' : '');
-    d.style.background = p.bg; d.onclick = () => setBg(p.bg, 'css', p.color);
-    list.appendChild(d);
-  });
-}
-
-function openArchive() { document.getElementById('archive-modal').classList.add('show'); renderArchive(); }
-function closeArchive() { document.getElementById('archive-modal').classList.remove('show'); }
-let currentArchFilter = 'day';
-function setArchFilter(f) { currentArchFilter = f; document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active')); document.getElementById('flt-'+f).classList.add('active'); renderArchive(); }
-
-function renderArchive() {
-  const list = document.getElementById('archive-list'); list.innerHTML = '';
-  let filtered = data.tasks.filter(t => t.completedAt);
-  if(currentArchFilter === 'day') filtered = filtered.filter(t => t.completedAt === getDStr(new Date()));
-  filtered.forEach(t => {
-    const div = document.createElement('div'); div.className = 'task-item';
-    div.innerHTML = `<input type="checkbox" checked disabled><span class="task-text done" style="flex:1">${t.text}</span><span style="font-size:10px;color:#999">${t.completedAt}</span>`;
+    const div = document.createElement('div');
+    div.className = 'swatch' + (data.settings.bg === p.bg && data.settings.bgType === 'css' ? ' active' : '');
+    div.style.background = p.bg; div.onclick = () => setBg(p.bg, 'css', p.color);
     list.appendChild(div);
   });
+  const up = document.createElement('label'); up.className = 'swatch'; up.style.border = '1.5px dashed #aaa';
+  up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:18px">＋</span><input type="file" accept="image/*" style="display:none">`;
+  up.querySelector('input').onchange = (e) => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader(); reader.onload = (ev) => { initImageEditor(ev.target.result); }; reader.readAsDataURL(file); e.target.value = '';
+  };
+  list.appendChild(up);
+  
+  const histList = document.getElementById('history-list'); histList.innerHTML = '';
+  (data.uploads || []).forEach(item => {
+    const imgSrc = typeof item === 'string' ? item : item.img;
+    const div = document.createElement('div');
+    div.className = 'swatch' + (data.settings.bg === imgSrc ? ' active' : '');
+    div.style.backgroundImage = `url(${imgSrc})`; div.style.backgroundSize = 'cover';
+    div.onclick = () => setBg(imgSrc, 'image', '#4a90e2');
+    histList.appendChild(div);
+  });
 }
 
-// 画像アップロード・編集関連は必要に応じて追加可能
-document.getElementById('reflection').oninput = (e) => localStorage.setItem('refl_' + getDStr(current), e.target.value);
+const canvas = document.getElementById('img-canvas'); const ctx = canvas.getContext('2d');
+let currentImgObj = null, scale = 1, posX = 0, posY = 0, lastScale = 1, lastPosX = 0, lastPosY = 0, startTouches = [];
+
+function initImageEditor(dataUrl) {
+  currentImgObj = new Image();
+  currentImgObj.onload = () => {
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const minScale = Math.max(canvas.width / currentImgObj.naturalWidth, canvas.height / currentImgObj.naturalHeight);
+    scale = lastScale = minScale; posX = lastPosX = 0; posY = lastPosY = 0;
+    document.getElementById('img-modal').classList.add('show'); draw();
+  };
+  currentImgObj.src = dataUrl;
+}
+
+function draw() {
+  if (!currentImgObj) return;
+  const cw = canvas.width, ch = canvas.height; ctx.clearRect(0, 0, cw, ch);
+  ctx.save(); ctx.translate(cw/2 + posX, ch/2 + posY); ctx.scale(scale, scale);
+  ctx.drawImage(currentImgObj, -currentImgObj.naturalWidth/2, -currentImgObj.naturalHeight/2); ctx.restore();
+}
+
+canvas.addEventListener('touchstart', e => { e.preventDefault(); startTouches = [...e.touches]; lastPosX=posX; lastPosY=posY; lastScale=scale; }, {passive:false});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault(); const t = [...e.touches], cw = canvas.width, ch = canvas.height;
+  if(t.length===1 && startTouches.length===1) { posX = lastPosX + (t[0].clientX - startTouches[0].clientX); posY = lastPosY + (t[0].clientY - startTouches[0].clientY); } 
+  else if(t.length===2 && startTouches.length===2) {
+    const d1 = Math.hypot(startTouches[0].clientX-startTouches[1].clientX, startTouches[0].clientY-startTouches[1].clientY);
+    const d2 = Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
+    const ms = Math.max(cw/currentImgObj.naturalWidth, ch/currentImgObj.naturalHeight);
+    scale = Math.max(ms, Math.min(5, lastScale * (d2/d1)));
+  }
+  const lx = Math.max(0, (currentImgObj.naturalWidth*scale - cw)/2), ly = Math.max(0, (currentImgObj.naturalHeight*scale - ch)/2);
+  posX = Math.max(-lx, Math.min(lx, posX)); posY = Math.max(-ly, Math.min(ly, posY)); draw();
+}, {passive:false});
+canvas.addEventListener('touchend', () => { lastPosX = posX; lastPosY = posY; lastScale = scale; });
+
+function closeModal() { document.getElementById('img-modal').classList.remove('show'); currentImgObj = null; }
+function confirmImage() {
+  const trimmedDataUrl = canvas.toDataURL("image/jpeg", 0.6); 
+  if(!data.uploads) data.uploads = []; data.uploads.unshift({ img: trimmedDataUrl, color: '#4a90e2' });
+  if(data.uploads.length > 3) data.uploads.pop();
+  setBg(trimmedDataUrl, 'image', '#4a90e2'); closeModal();
+}
+
+document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_' + getDStr(current), e.target.value); };
 render();
 </script>
 </body>
