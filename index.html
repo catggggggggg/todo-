@@ -36,6 +36,8 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 
 .header { padding: 10px; display: flex; align-items: center; justify-content: space-between; gap:5px; }
 .header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; }
+/* 連続達成バッジのCSSを追加 */
+#streak-badge { font-size: 12px; font-weight: 800; color: #ff6b6b; background: rgba(255,107,107,0.1); padding: 5px 10px; border-radius: 15px; display: flex; align-items: center; gap: 4px; }
 
 .date-nav-btn { background: none; border: none; font-size: 20px; padding: 12px 20px; color: #555; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 .date-nav-btn:active { transform: scale(0.8); }
@@ -117,7 +119,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
       </div>
       <button class="date-nav-btn" onclick="moveDate(1)">▶︎</button>
     </div>
-    <div style="width:44px;"></div>
+    <div id="streak-badge">🔥 <span id="streak-count">0</span>日</div>
   </div>
 
   <div class="card">
@@ -277,6 +279,37 @@ function toggleSettings() {
   }
 }
 
+// 連続達成記録を計算する関数を追加
+function calcStreak() {
+  let count = 0;
+  let tempD = new Date();
+  let todayStr = getDStr(tempD);
+  tempD.setDate(tempD.getDate() - 1);
+  let yesterdayStr = getDStr(tempD);
+
+  let doneDates = new Set();
+  data.tasks.forEach(t => {
+    if(t.completedAt) {
+      const compDate = t.completedAt.includes('T') ? getDStr(new Date(t.completedAt)) : t.completedAt;
+      doneDates.add(compDate);
+    }
+  });
+
+  let currentCheck = todayStr;
+  if (doneDates.has(todayStr)) { count++; currentCheck = yesterdayStr; } 
+  else if (doneDates.has(yesterdayStr)) { currentCheck = yesterdayStr; } 
+  else { document.getElementById('streak-count').textContent = "0"; return; }
+
+  while(true) {
+    if (currentCheck !== todayStr && doneDates.has(currentCheck)) { count++; } 
+    else if (currentCheck !== todayStr) { break; }
+    let prev = new Date(currentCheck.replace(/-/g, '/'));
+    prev.setDate(prev.getDate() - 1);
+    currentCheck = getDStr(prev);
+  }
+  document.getElementById('streak-count').textContent = count;
+}
+
 function render() {
   const dStr = getDStr(current);
   const days = ['日','月','火','水','木','金','土'];
@@ -304,7 +337,6 @@ function render() {
       const div = document.createElement('div');
       div.className = 'task-item';
       
-      // 完了日が記録されていれば、表示される全期間（追加日〜完了日）で車線を引く
       const isDone = !!t.completedAt;
       
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
@@ -352,7 +384,8 @@ function render() {
     });
   });
   document.getElementById('reflection').value = localStorage.getItem('refl_' + dStr) || '';
-  applySettings(); buildSwatches();
+  applySettings(); buildSwatches(); 
+  calcStreak(); // 最後にストリークを再計算して表示
 }
 
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
