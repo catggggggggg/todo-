@@ -13,12 +13,14 @@
 :root { 
   --section-opacity: 0.95; 
   --accent-color: #4a90e2; 
+  --app-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --bg-blur: 0px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; background: #000; color: #1a1a1a; }
+body { font-family: var(--app-font); overscroll-behavior-y: none; background: #000; color: #1a1a1a; transition: font-family 0.3s; }
 
-#bg-layer { position: fixed; inset: 0; background: linear-gradient(135deg,#fde8f0,#fbc8d8); background-size: cover; background-position: center; z-index: -1; transition: background 0.3s; }
+#bg-layer { position: fixed; inset: -20px; background: linear-gradient(135deg,#fde8f0,#fbc8d8); background-size: cover; background-position: center; z-index: -1; transition: background 0.3s, filter 0.3s; filter: blur(var(--bg-blur)); }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.05); z-index: 0; pointer-events: none; }
 
 .app-container { 
@@ -40,12 +42,14 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
 .card-title { font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-.task-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
-.cb { width: 22px; height: 22px; accent-color: var(--accent-color); transition: 0.3s; }
-.task-text { flex: 1; font-size: 15px; }
+.task-item { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
+.cb { width: 22px; height: 22px; accent-color: var(--accent-color); transition: 0.3s; flex-shrink: 0; }
+.task-content { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.task-text { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-text.done { text-decoration: line-through; color: #aaa; }
-.del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; }
-.date-badge { font-size: 10px; color: #999; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+.due-badge { font-size: 10px; font-weight: bold; color: #fff; background: #ff6b6b; padding: 3px 6px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+.edit-btn { background: none; border: none; color: #999; font-size: 16px; padding: 5px; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
+.del-btn { background: none; border: none; color: #ccc; font-size: 20px; padding: 5px; flex-shrink: 0; cursor: pointer; }
 
 #toast { 
   position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
@@ -56,11 +60,12 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 }
 #toast.show { opacity: 1; bottom: 120px; }
 
-.add-area { display: flex; gap: 8px; padding: 10px 15px; }
-.add-area input { flex: 1; background: rgba(0,0,0,0.05); border: none; border-radius: 10px; padding: 10px; font-size: 15px; outline: none; }
-.add-area button { background: var(--accent-color); color: white; border: none; border-radius: 10px; padding: 0 15px; font-weight: 700; transition: 0.3s; }
+.add-area { display: flex; gap: 8px; padding: 10px 15px; align-items: center; }
+.add-area input[type="text"] { flex: 1; background: rgba(0,0,0,0.05); border: none; border-radius: 10px; padding: 10px; font-size: 15px; outline: none; min-width: 0; }
+.add-area input[type="date"] { width: 110px; background: rgba(0,0,0,0.05); border: none; border-radius: 10px; padding: 9px 5px; font-size: 12px; outline: none; color: #555; }
+.add-area button { background: var(--accent-color); color: white; border: none; border-radius: 10px; padding: 0 15px; height: 38px; font-weight: 700; transition: 0.3s; flex-shrink: 0; cursor: pointer; }
 
-.reflection-box { width: calc(100% - 30px); height: 80px; background: rgba(255,255,255,0.3); border: none; border-radius: 12px; padding: 10px; font-size: 14px; margin: 8px 15px 15px; outline: none; resize: none; }
+.reflection-box { width: calc(100% - 30px); height: 80px; background: rgba(255,255,255,0.3); border: none; border-radius: 12px; padding: 10px; font-size: 14px; margin: 8px 15px 15px; outline: none; resize: none; font-family: inherit; }
 
 .settings-grid { padding: 15px; display: grid; gap: 15px; }
 .label { font-size: 11px; font-weight: 800; color: #777; margin-bottom: 8px; display: block; }
@@ -68,7 +73,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; background-size: cover; position: relative; transition: 0.2s; }
 .swatch.active { border-color: var(--accent-color); transform: scale(1.1); }
 .op-btn-group { display: flex; gap: 10px; }
-.op-btn { flex: 1; height: 45px; border-radius: 12px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 13px; color: #444; transition: 0.3s; }
+.op-btn { flex: 1; height: 40px; border-radius: 10px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 13px; color: #444; transition: 0.3s; font-family: inherit; cursor: pointer; }
 .op-btn.active { background: var(--accent-color); color: white; }
 
 #archive-modal { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 20px; }
@@ -77,23 +82,16 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 .archive-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
 .archive-header h3 { font-size: 16px; margin: 0; color: #333; }
 .filter-group { display: flex; gap: 10px; padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); background: #fafafa; }
-.flt-btn { flex: 1; padding: 8px; border-radius: 10px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 12px; color: #666; cursor: pointer; transition: 0.3s; }
+.flt-btn { flex: 1; padding: 8px; border-radius: 10px; border: none; background: rgba(0,0,0,0.05); font-weight: 700; font-size: 12px; color: #666; cursor: pointer; transition: 0.3s; font-family: inherit; }
 .flt-btn.active { background: var(--accent-color); color: #fff; }
 #archive-list { overflow-y: auto; flex: 1; padding-bottom: 20px; }
 
-#img-modal { 
-  display: none; position: fixed; inset: 0; z-index: 3000; background: #000; 
-  align-items: center; justify-content: center; overflow: hidden;
-}
+#img-modal { display: none; position: fixed; inset: 0; z-index: 3000; background: #000; align-items: center; justify-content: center; overflow: hidden; }
 #img-modal.show { display: flex !important; }
 #img-canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; touch-action: none; }
-.editor-overlay {
-  position: absolute; bottom: calc(env(safe-area-inset-bottom) + 30px); left: 50%; 
-  transform: translateX(-50%); width: 90%; max-width: 400px; display: flex; flex-direction: column; 
-  align-items: center; gap: 15px; z-index: 10; pointer-events: none;
-}
+.editor-overlay { position: absolute; bottom: calc(env(safe-area-inset-bottom) + 30px); left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 10; pointer-events: none; }
 .modal-btns { display: flex; gap: 15px; width: 100%; pointer-events: auto; }
-.modal-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+.modal-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-family: inherit;}
 </style>
 </head>
 <body>
@@ -104,12 +102,12 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 <div class="app-container">
   <div class="card header">
     <button class="header-btn" onclick="openArchive()">≡</button>
-    <button onclick="moveDate(-1)" style="border:none; background:none; font-size:18px;">←</button>
+    <button onclick="moveDate(-1)" style="border:none; background:none; font-size:18px; cursor:pointer;">←</button>
     <div class="date-wrap">
       <div class="date-label" id="date-label">日付</div>
       <input type="date" id="date-picker" onchange="jumpDate(this.value)">
     </div>
-    <button onclick="moveDate(1)" style="border:none; background:none; font-size:18px;">→</button>
+    <button onclick="moveDate(1)" style="border:none; background:none; font-size:18px; cursor:pointer;">→</button>
     <div style="width:44px;"></div>
   </div>
 
@@ -118,6 +116,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
     <div id="list-today"></div>
     <div class="add-area">
       <input type="text" id="input-today" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('today')">
+      <input type="date" id="due-today" title="期限を設定">
       <button onclick="addTask('today')">追加</button>
     </div>
   </div>
@@ -127,6 +126,7 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
     <div id="list-weekly"></div>
     <div class="add-area">
       <input type="text" id="input-weekly" placeholder="タスクを追加..." onkeydown="if(event.key==='Enter')addTask('weekly')">
+      <input type="date" id="due-weekly" title="期限を設定">
       <button onclick="addTask('weekly')">追加</button>
     </div>
   </div>
@@ -142,12 +142,31 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
       <div class="color-list" id="swatch-list"></div>
       <div class="color-list" id="history-list" style="margin-top:10px;"></div>
     </div>
+    
+    <div>
+      <span class="label">背景のぼかし</span>
+      <div class="op-btn-group">
+        <button id="blur-none" class="op-btn" onclick="setBlur('0px')">なし</button>
+        <button id="blur-mid" class="op-btn" onclick="setBlur('5px')">弱</button>
+        <button id="blur-high" class="op-btn" onclick="setBlur('15px')">強</button>
+      </div>
+    </div>
+
     <div>
       <span class="label">パネルの透明度</span>
       <div class="op-btn-group">
         <button id="op-high" class="op-btn" onclick="setOp(0.3)">高い</button>
         <button id="op-mid" class="op-btn" onclick="setOp(0.6)">中</button>
         <button id="op-low" class="op-btn" onclick="setOp(0.95)">低い</button>
+      </div>
+    </div>
+
+    <div>
+      <span class="label">フォント変更</span>
+      <div class="op-btn-group">
+        <button id="font-sans" class="op-btn" onclick="setFont('-apple-system, sans-serif')">標準</button>
+        <button id="font-maru" class="op-btn" onclick="setFont('\'Hiragino Maru Gothic ProN\', \'VAG Rounded\', sans-serif')">丸ゴシック</button>
+        <button id="font-serif" class="op-btn" onclick="setFont('\'Hiragino Mincho ProN\', \'Yu Mincho\', serif')">明朝体</button>
       </div>
     </div>
   </div>
@@ -185,8 +204,6 @@ body { font-family: -apple-system, sans-serif; overscroll-behavior-y: none; back
 
 <script>
 let current = new Date();
-
-// もう名前を変えないための「永久保存用キー」
 const storageKey = 'todo_app_permanent_data'; 
 
 const presets = [
@@ -201,38 +218,23 @@ const presets = [
   { bg: 'linear-gradient(135deg,#e0f2fe,#bae6fd)', color: '#0ea5e9' }  
 ];
 
-const praiseMessages = [
-  "お疲れ様！", "その調子！", "すごい！", "頑張ったね！", "ナイス！", 
-  "次も頑張ろう！", "天才！", "完璧！", "素晴らしい！", "一歩前進！",
-  "最高！", "よくやった！", "その意気！", "素晴らしいペース！", "やり遂げたね！", 
-  "さすが！", "いい感じ！", "お見事！", "頑張りが光ってる！", "超いいね！", 
-  "ミッションクリア！", "達成感！", "グッジョブ！", "ブラボー！", "拍手！", 
-  "キレキレだね！", "今日も絶好調！"
-];
+const praiseMessages = ["お疲れ様！", "その調子！", "すごい！", "頑張ったね！", "ナイス！"];
 
-// ▼ 過去の「v22, v21, v20, v19...」に取り残されたデータを片っ端から探して救出する処理
-let data = JSON.parse(localStorage.getItem(storageKey)) || 
-           JSON.parse(localStorage.getItem('todo_final_v22')) || 
-           JSON.parse(localStorage.getItem('todo_final_v21')) || 
-           JSON.parse(localStorage.getItem('todo_final_v20')) || 
-           JSON.parse(localStorage.getItem('todo_final_v19')) || 
-           { tasks: [], uploads: [], settings: { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95 } };
+let data = JSON.parse(localStorage.getItem(storageKey)) || { tasks: [], uploads: [], settings: {} };
 
-// 救出したデータを、永久保存箱に入れ直す
-localStorage.setItem(storageKey, JSON.stringify(data));
+if(!data.settings.bg) data.settings = { bg: presets[0].bg, bgType: 'css', themeColor: presets[0].color, op: 0.95 };
+if(data.settings.blur === undefined) data.settings.blur = '0px';
+if(data.settings.font === undefined) data.settings.font = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
 let currentArchFilter = 'day';
 
 function save() { 
-  try {
-    localStorage.setItem(storageKey, JSON.stringify(data)); 
-  } catch (e) {
-    alert("容量オーバーです。古い画像履歴を削除します。");
-    if(data.uploads.length > 0) data.uploads.pop();
-    save();
-  }
+  try { localStorage.setItem(storageKey, JSON.stringify(data)); } 
+  catch (e) { alert("容量オーバーです。古い画像履歴を削除します。"); if(data.uploads.length > 0) data.uploads.pop(); save(); }
 }
+
 function getDStr(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); }
 
 function showToast() {
   const t = document.getElementById('toast');
@@ -250,30 +252,62 @@ function render() {
     const listEl = document.getElementById('list-' + type);
     listEl.innerHTML = '';
     
-    // 今日やること・今週やることに関わらず、未完了なら持ち越す
     const visible = data.tasks.filter(t => {
       if (t.type !== type) return false;
-      const targetDate = t.createdAt; 
-      if (dStr < targetDate) return false;
-      if (t.completedAt && dStr > targetDate) return false; 
-      if (!t.completedAt && dStr > targetDate) return true; 
-      return dStr === targetDate;
+      const createdDate = t.createdAt; 
+      if (dStr < createdDate) return false; 
+      
+      if (t.completedAt) {
+        const compDate = getDStr(new Date(t.completedAt));
+        return dStr === compDate;
+      } else {
+        return dStr >= createdDate;
+      }
     });
 
     visible.forEach(t => {
       const div = document.createElement('div');
       div.className = 'task-item';
       const isDone = !!t.completedAt;
+      
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'cb'; cb.checked = isDone;
       cb.onchange = () => {
         if (cb.checked) { t.completedAt = new Date().toISOString(); showToast(); } else { t.completedAt = null; }
         save(); render();
         if(document.getElementById('archive-modal').classList.contains('show')) renderArchive();
       };
-      const span = document.createElement('span'); span.className = 'task-text' + (isDone ? ' done' : ''); span.textContent = t.text;
-      const del = document.createElement('button'); del.className = 'del-btn'; del.textContent = '×';
+
+      const contentDiv = document.createElement('div'); contentDiv.className = 'task-content';
+      
+      const textSpan = document.createElement('span'); textSpan.className = 'task-text' + (isDone ? ' done' : '');
+      textSpan.textContent = t.text;
+      contentDiv.appendChild(textSpan);
+
+      if(t.dueDate) {
+        const dueSpan = document.createElement('span'); dueSpan.className = 'due-badge';
+        dueSpan.textContent = '期限: ' + t.dueDate.replace(/-/g, '/');
+        contentDiv.appendChild(dueSpan);
+      }
+
+      // 編集ボタン（鉛筆マーク）を追加
+      const editBtn = document.createElement('button');
+      editBtn.className = 'edit-btn';
+      editBtn.innerHTML = '✎';
+      editBtn.title = '編集';
+      editBtn.onclick = () => {
+        const newText = prompt("タスクを編集:", t.text);
+        if(newText !== null && newText.trim() !== "") { t.text = newText.trim(); save(); render(); }
+      };
+
+      const del = document.createElement('button'); del.className = 'del-btn'; del.innerHTML = '×';
+      del.title = '削除';
       del.onclick = () => { data.tasks = data.tasks.filter(x => x !== t); save(); render(); };
-      div.appendChild(cb); div.appendChild(span); div.appendChild(del); listEl.appendChild(div);
+      
+      div.appendChild(cb); 
+      div.appendChild(contentDiv); 
+      div.appendChild(editBtn); // ゴミ箱の左に配置
+      div.appendChild(del); 
+      listEl.appendChild(div);
     });
   });
   document.getElementById('reflection').value = localStorage.getItem('refl_' + dStr) || '';
@@ -281,27 +315,21 @@ function render() {
 }
 
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
-function jumpDate(v) { 
-  if (!v) { current = new Date(); } else { current = new Date(v.replace(/-/g, '/')); }
-  render(); 
-}
+function jumpDate(v) { if (!v) { current = new Date(); } else { current = new Date(v.replace(/-/g, '/')); } render(); }
 
 function openArchive() { document.getElementById('archive-modal').classList.add('show'); renderArchive(); }
 function closeArchive() { document.getElementById('archive-modal').classList.remove('show'); }
-function setArchFilter(f) { 
-  currentArchFilter = f; document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('flt-'+f).classList.add('active'); renderArchive(); 
-}
+function setArchFilter(f) { currentArchFilter = f; document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active')); document.getElementById('flt-'+f).classList.add('active'); renderArchive(); }
 
 function renderArchive() {
   const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
   let completed = data.tasks.filter(t => t.completedAt);
-  completed.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  completed.sort((a, b) => b.completedAt.localeCompare(a.completedAt));
   const todayStr = getDStr(new Date());
   completed = completed.filter(t => {
-    const taskDate = t.createdAt;
-    if (currentArchFilter === 'day') return taskDate === todayStr;
-    const d = new Date(taskDate.replace(/-/g, '/'));
+    const compDate = getDStr(new Date(t.completedAt));
+    if (currentArchFilter === 'day') return compDate === todayStr;
+    const d = new Date(compDate.replace(/-/g, '/'));
     const diffDays = (new Date(todayStr.replace(/-/g, '/')) - d) / (1000 * 60 * 60 * 24);
     if (currentArchFilter === 'week') return diffDays >= 0 && diffDays <= 7;
     if (currentArchFilter === 'month') return d.getMonth() === new Date().getMonth();
@@ -310,7 +338,8 @@ function renderArchive() {
   if(!completed.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">該当する完了タスクはありません</div>`; return; }
   completed.forEach(t => {
     const div = document.createElement('div'); div.className = 'task-item';
-    div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${t.text}</span><span class="date-badge">${t.createdAt.replace(/-/g,'/')}</span>`;
+    const compDateStr = getDStr(new Date(t.completedAt)).replace(/-/g,'/');
+    div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${escapeHTML(t.text)}</span><span class="due-badge" style="background:#ccc">${compDateStr}完了</span>`;
     div.querySelector('.cb').onchange = () => { t.completedAt = null; save(); render(); renderArchive(); };
     listEl.appendChild(div);
   });
@@ -318,9 +347,15 @@ function renderArchive() {
 
 function addTask(type) {
   const input = document.getElementById('input-' + type);
+  const dueInput = document.getElementById('due-' + type);
   if (!input.value.trim()) return;
-  data.tasks.push({ text: input.value.trim(), type: type, createdAt: getDStr(current), completedAt: null });
-  input.value = ''; save(); render();
+  
+  data.tasks.push({ 
+    text: input.value.trim(), type: type, createdAt: getDStr(current), completedAt: null, 
+    dueDate: dueInput.value || null 
+  });
+  
+  input.value = ''; dueInput.value = ''; save(); render();
 }
 
 function applySettings() {
@@ -336,38 +371,39 @@ function applySettings() {
   }
   
   document.documentElement.style.setProperty('--section-opacity', s.op);
+  document.documentElement.style.setProperty('--bg-blur', s.blur);
+  document.documentElement.style.setProperty('--app-font', s.font);
+  
   document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
   if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
   if (s.op === 0.6) document.getElementById('op-mid').classList.add('active');
   if (s.op === 0.95) document.getElementById('op-low').classList.add('active');
+  if (s.blur === '0px') document.getElementById('blur-none').classList.add('active');
+  if (s.blur === '5px') document.getElementById('blur-mid').classList.add('active');
+  if (s.blur === '15px') document.getElementById('blur-high').classList.add('active');
+  if (s.font.includes('sans-serif') && !s.font.includes('Maru')) document.getElementById('font-sans').classList.add('active');
+  if (s.font.includes('Maru')) document.getElementById('font-maru').classList.add('active');
+  if (s.font.includes('serif') && !s.font.includes('sans')) document.getElementById('font-serif').classList.add('active');
 }
 
-function setBg(bg, type, color) { 
-  data.settings.bg = bg; 
-  data.settings.bgType = type; 
-  data.settings.themeColor = color; 
-  save(); render(); 
-}
-
+function setBg(bg, type, color) { data.settings.bg = bg; data.settings.bgType = type; data.settings.themeColor = color; save(); render(); }
 function setOp(v) { data.settings.op = v; save(); render(); }
+function setBlur(v) { data.settings.blur = v; save(); render(); }
+function setFont(v) { data.settings.font = v; save(); render(); }
 
 function buildSwatches() {
   const list = document.getElementById('swatch-list'); list.innerHTML = '';
   presets.forEach(p => {
     const div = document.createElement('div');
     div.className = 'swatch' + (data.settings.bg === p.bg && data.settings.bgType === 'css' ? ' active' : '');
-    div.style.background = p.bg; 
-    div.onclick = () => setBg(p.bg, 'css', p.color);
+    div.style.background = p.bg; div.onclick = () => setBg(p.bg, 'css', p.color);
     list.appendChild(div);
   });
   const up = document.createElement('label'); up.className = 'swatch'; up.style.border = '1.5px dashed #aaa';
   up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:18px">＋</span><input type="file" accept="image/*" style="display:none">`;
   up.querySelector('input').onchange = (e) => {
     const file = e.target.files[0]; if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => { initImageEditor(ev.target.result); };
-    reader.readAsDataURL(file);
-    e.target.value = '';
+    const reader = new FileReader(); reader.onload = (ev) => { initImageEditor(ev.target.result); }; reader.readAsDataURL(file); e.target.value = '';
   };
   list.appendChild(up);
   
@@ -382,10 +418,8 @@ function buildSwatches() {
   });
 }
 
-const canvas = document.getElementById('img-canvas');
-const ctx = canvas.getContext('2d');
-let currentImgObj = null;
-let scale = 1, posX = 0, posY = 0, lastScale = 1, lastPosX = 0, lastPosY = 0, startTouches = [];
+const canvas = document.getElementById('img-canvas'); const ctx = canvas.getContext('2d');
+let currentImgObj = null, scale = 1, posX = 0, posY = 0, lastScale = 1, lastPosX = 0, lastPosY = 0, startTouches = [];
 
 function initImageEditor(dataUrl) {
   currentImgObj = new Image();
@@ -393,48 +427,39 @@ function initImageEditor(dataUrl) {
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     const minScale = Math.max(canvas.width / currentImgObj.naturalWidth, canvas.height / currentImgObj.naturalHeight);
     scale = lastScale = minScale; posX = lastPosX = 0; posY = lastPosY = 0;
-    document.getElementById('img-modal').classList.add('show');
-    draw();
+    document.getElementById('img-modal').classList.add('show'); draw();
   };
   currentImgObj.src = dataUrl;
 }
 
 function draw() {
   if (!currentImgObj) return;
-  const cw = canvas.width, ch = canvas.height;
-  ctx.clearRect(0, 0, cw, ch);
+  const cw = canvas.width, ch = canvas.height; ctx.clearRect(0, 0, cw, ch);
   ctx.save(); ctx.translate(cw/2 + posX, ch/2 + posY); ctx.scale(scale, scale);
-  ctx.drawImage(currentImgObj, -currentImgObj.naturalWidth/2, -currentImgObj.naturalHeight/2);
-  ctx.restore();
+  ctx.drawImage(currentImgObj, -currentImgObj.naturalWidth/2, -currentImgObj.naturalHeight/2); ctx.restore();
 }
 
 canvas.addEventListener('touchstart', e => { e.preventDefault(); startTouches = [...e.touches]; lastPosX=posX; lastPosY=posY; lastScale=scale; }, {passive:false});
 canvas.addEventListener('touchmove', e => {
   e.preventDefault(); const t = [...e.touches], cw = canvas.width, ch = canvas.height;
-  if(t.length===1 && startTouches.length===1) {
-    posX = lastPosX + (t[0].clientX - startTouches[0].clientX);
-    posY = lastPosY + (t[0].clientY - startTouches[0].clientY);
-  } else if(t.length===2 && startTouches.length===2) {
+  if(t.length===1 && startTouches.length===1) { posX = lastPosX + (t[0].clientX - startTouches[0].clientX); posY = lastPosY + (t[0].clientY - startTouches[0].clientY); } 
+  else if(t.length===2 && startTouches.length===2) {
     const d1 = Math.hypot(startTouches[0].clientX-startTouches[1].clientX, startTouches[0].clientY-startTouches[1].clientY);
     const d2 = Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
     const ms = Math.max(cw/currentImgObj.naturalWidth, ch/currentImgObj.naturalHeight);
     scale = Math.max(ms, Math.min(5, lastScale * (d2/d1)));
   }
   const lx = Math.max(0, (currentImgObj.naturalWidth*scale - cw)/2), ly = Math.max(0, (currentImgObj.naturalHeight*scale - ch)/2);
-  posX = Math.max(-lx, Math.min(lx, posX)); posY = Math.max(-ly, Math.min(ly, posY));
-  draw();
+  posX = Math.max(-lx, Math.min(lx, posX)); posY = Math.max(-ly, Math.min(ly, posY)); draw();
 }, {passive:false});
 canvas.addEventListener('touchend', () => { lastPosX = posX; lastPosY = posY; lastScale = scale; });
 
 function closeModal() { document.getElementById('img-modal').classList.remove('show'); currentImgObj = null; }
-
 function confirmImage() {
   const trimmedDataUrl = canvas.toDataURL("image/jpeg", 0.6); 
-  if(!data.uploads) data.uploads = [];
-  data.uploads.unshift({ img: trimmedDataUrl, color: '#4a90e2' });
+  if(!data.uploads) data.uploads = []; data.uploads.unshift({ img: trimmedDataUrl, color: '#4a90e2' });
   if(data.uploads.length > 3) data.uploads.pop();
-  setBg(trimmedDataUrl, 'image', '#4a90e2'); 
-  closeModal();
+  setBg(trimmedDataUrl, 'image', '#4a90e2'); closeModal();
 }
 
 document.getElementById('reflection').oninput = (e) => { localStorage.setItem('refl_' + getDStr(current), e.target.value); };
