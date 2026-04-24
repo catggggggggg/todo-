@@ -68,6 +68,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .date-label { font-size: 15px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); padding: 8px 15px; border-radius: 20px; white-space: nowrap; }
 #date-picker { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
+/* カードタイトル周り */
 .card-title { 
   font-size: 11px; font-weight: 800; color: #666; padding: 12px 15px 5px; 
   text-transform: uppercase; letter-spacing: 1px; 
@@ -78,6 +79,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 .edit-btn-title:active { transform: scale(0.9); color: var(--accent-color); }
 .del-section-btn { color: #ff8787; font-size: 14px; margin-left: 5px; }
 
+/* セクション追加ボタン */
 .add-section-btn {
   width: 100%; padding: 15px; margin: 5px 0;
   border: 2px dashed rgba(255,255,255,0.6); border-radius: 18px;
@@ -85,15 +87,13 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
   font-weight: 800; color: #666; cursor: pointer;
   transition: 0.3s; font-size: 14px;
 }
+.add-section-btn:active { transform: scale(0.98); background: rgba(255,255,255,0.8); }
 
 .task-item { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-bottom: 0.5px solid rgba(0,0,0,0.03); }
 .cb { width: 22px; height: 22px; accent-color: var(--accent-color); transition: 0.3s; flex-shrink: 0; }
 .task-content { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .task-text { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* 取り消し線のスタイル設定 */
 .task-text.done { text-decoration: line-through; color: #aaa; opacity: 0.7; }
-
 .due-badge { font-size: 10px; font-weight: bold; color: #fff; background: #ff6b6b; padding: 3px 6px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
 .repeat-badge { font-size: 9px; color: #777; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
 .edit-btn { background: none; border: none; color: #999; font-size: 16px; padding: 5px; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
@@ -238,8 +238,11 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 <div id="img-modal">
   <canvas id="img-canvas"></canvas>
   <div class="editor-overlay">
+    <div style="color:#fff; font-size:14px; font-weight:bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 20px;">
+      ピンチで拡大縮小・ドラッグで移動
+    </div>
     <div class="modal-btns">
-      <button class="modal-btn" style="background:rgba(255,255,255,0.2);color:#fff" onclick="closeModal()">キャンセル</button>
+      <button class="modal-btn" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);" onclick="closeModal()">キャンセル</button>
       <button class="modal-btn" style="background:var(--accent-color);color:#fff" onclick="confirmImage()">背景に設定</button>
     </div>
   </div>
@@ -331,6 +334,9 @@ function toggleSettings() {
   const chevron = document.getElementById('settings-chevron');
   content.style.display = content.style.display === 'none' ? 'grid' : 'none';
   chevron.textContent = content.style.display === 'none' ? '▼' : '▲';
+  if(content.style.display === 'grid') {
+    setTimeout(() => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 50);
+  }
 }
 
 function calcStreak() {
@@ -405,7 +411,6 @@ function render() {
       const div = document.createElement('div');
       div.className = 'task-item';
       
-      // 改良版「完了判定」ロジック：全セクション共通
       let isDone = false;
       if (t.repeat === 'daily') {
         isDone = (t.doneDates || []).includes(dStr);
@@ -413,7 +418,6 @@ function render() {
         const curWeekId = getWeekId(dStr);
         isDone = (t.doneDates || []).some(date => getWeekId(date) === curWeekId);
       } else {
-        // 1回限りのタスク：完了日が設定されていれば、どの日付・どのセクションでも横線を引く
         isDone = !!t.completedAt;
       }
       
@@ -437,7 +441,6 @@ function render() {
 
       const contentDiv = document.createElement('div'); contentDiv.className = 'task-content';
       const textSpan = document.createElement('span'); 
-      // 全セクションで done クラスが適用されるように
       textSpan.className = 'task-text' + (isDone ? ' done' : '');
       textSpan.textContent = t.text;
       
@@ -471,7 +474,7 @@ function jumpDate(v) { if (v) current = new Date(v.replace(/-/g, '/')); render()
 
 function openArchive() { document.getElementById('archive-modal').classList.add('show'); renderArchive(); }
 function closeArchive() { document.getElementById('archive-modal').classList.remove('show'); }
-function setArchFilter(f) { currentArchFilter = f; renderArchive(); }
+function setArchFilter(f) { currentArchFilter = f; document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active')); document.getElementById('flt-'+f).classList.add('active'); renderArchive(); }
 
 function renderArchive() {
   const listEl = document.getElementById('archive-list'); listEl.innerHTML = '';
@@ -480,7 +483,20 @@ function renderArchive() {
     if (t.repeat !== 'none') (t.doneDates || []).forEach(d => entries.push({...t, archD: d, ref: t}));
     else if (t.completedAt) entries.push({...t, archD: t.completedAt, ref: t});
   });
-  entries.sort((a,b) => b.archD.localeCompare(a.archD)).forEach(e => {
+  
+  const todayStr = getDStr(new Date());
+  const filtered = entries.filter(t => {
+    if (currentArchFilter === 'day') return t.archD === todayStr;
+    const d = new Date(t.archD.replace(/-/g, '/'));
+    const diffDays = (new Date(todayStr.replace(/-/g, '/')) - d) / (1000 * 60 * 60 * 24);
+    if (currentArchFilter === 'week') return diffDays >= 0 && diffDays <= 7;
+    if (currentArchFilter === 'month') return d.getMonth() === new Date().getMonth();
+    return true;
+  });
+  
+  if(!filtered.length) { listEl.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">該当する完了タスクはありません</div>`; return; }
+
+  filtered.sort((a,b) => b.archD.localeCompare(a.archD)).forEach(e => {
     const div = document.createElement('div'); div.className = 'task-item';
     div.innerHTML = `<input type="checkbox" class="cb" checked><span class="task-text done" style="flex:1">${escapeHTML(e.text)}</span><span class="due-badge" style="background:#ccc">${e.archD}完了</span>`;
     div.querySelector('.cb').onchange = () => {
@@ -504,19 +520,32 @@ function addTask(secId) {
   input.value = ''; due.value = ''; repeat.value = 'none'; save(); render();
 }
 
+// 修正箇所：ボタンの色付け（activeクラスの付与）を復元しました！
 function applySettings() {
   const bg = document.getElementById('bg-layer');
   const s = data.settings;
   if (s.bgType === 'image') {
-    bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover';
+    bg.style.backgroundImage = `url(${s.bg})`; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center';
     document.documentElement.style.setProperty('--accent-color', '#4a90e2');
   } else {
-    bg.style.background = s.bg;
+    bg.style.background = s.bg; bg.style.backgroundSize = 'cover';
     document.documentElement.style.setProperty('--accent-color', s.themeColor || '#4a90e2');
   }
   document.documentElement.style.setProperty('--section-opacity', s.op);
   document.documentElement.style.setProperty('--bg-blur', s.blur);
   document.documentElement.style.setProperty('--app-font', s.font);
+
+  // ↓ここから下のハイライト処理を復活させています
+  document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
+  if (s.op === 0.3) document.getElementById('op-high').classList.add('active');
+  if (s.op === 0.6) document.getElementById('op-mid').classList.add('active');
+  if (s.op === 0.95) document.getElementById('op-low').classList.add('active');
+  if (s.blur === '0px') document.getElementById('blur-none').classList.add('active');
+  if (s.blur === '5px') document.getElementById('blur-mid').classList.add('active');
+  if (s.blur === '15px') document.getElementById('blur-high').classList.add('active');
+  if (s.font.includes('sans-serif') && !s.font.includes('Maru')) document.getElementById('font-sans').classList.add('active');
+  if (s.font.includes('Maru')) document.getElementById('font-maru').classList.add('active');
+  if (s.font.includes('serif') && !s.font.includes('sans')) document.getElementById('font-serif').classList.add('active');
 }
 
 function setBg(bg, type, color) { data.settings.bg = bg; data.settings.bgType = type; data.settings.themeColor = color; save(); render(); }
@@ -528,7 +557,7 @@ function buildSwatches() {
   const list = document.getElementById('swatch-list'); list.innerHTML = '';
   presets.forEach(p => {
     const div = document.createElement('div');
-    div.className = 'swatch' + (data.settings.bg === p.bg ? ' active' : '');
+    div.className = 'swatch' + (data.settings.bg === p.bg && data.settings.bgType === 'css' ? ' active' : '');
     div.style.background = p.bg; div.onclick = () => setBg(p.bg, 'css', p.color);
     list.appendChild(div);
   });
@@ -536,27 +565,62 @@ function buildSwatches() {
   up.innerHTML = `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa">＋</span><input type="file" accept="image/*" style="display:none">`;
   up.querySelector('input').onchange = (e) => {
     const reader = new FileReader(); reader.onload = (ev) => initImageEditor(ev.target.result); reader.readAsDataURL(e.target.files[0]);
+    e.target.value = '';
   };
   list.appendChild(up);
+
+  const histList = document.getElementById('history-list'); histList.innerHTML = '';
+  (data.uploads || []).forEach(item => {
+    const imgSrc = typeof item === 'string' ? item : item.img;
+    const div = document.createElement('div');
+    div.className = 'swatch' + (data.settings.bg === imgSrc ? ' active' : '');
+    div.style.backgroundImage = `url(${imgSrc})`; div.style.backgroundSize = 'cover';
+    div.onclick = () => setBg(imgSrc, 'image', '#4a90e2');
+    histList.appendChild(div);
+  });
 }
 
+// 修正箇所：画像の拡大縮小・ドラッグ処理も安全のために完全版を復元
 const canvas = document.getElementById('img-canvas'); const ctx = canvas.getContext('2d');
-let currentImgObj = null;
+let currentImgObj = null, scale = 1, posX = 0, posY = 0, lastScale = 1, lastPosX = 0, lastPosY = 0, startTouches = [];
 
 function initImageEditor(dataUrl) {
   currentImgObj = new Image();
   currentImgObj.onload = () => {
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    document.getElementById('img-modal').classList.add('show');
-    ctx.drawImage(currentImgObj, 0, 0, canvas.width, canvas.height);
+    const minScale = Math.max(canvas.width / currentImgObj.naturalWidth, canvas.height / currentImgObj.naturalHeight);
+    scale = lastScale = minScale; posX = lastPosX = 0; posY = lastPosY = 0;
+    document.getElementById('img-modal').classList.add('show'); draw();
   };
   currentImgObj.src = dataUrl;
 }
 
-function closeModal() { document.getElementById('img-modal').classList.remove('show'); }
+function draw() {
+  if (!currentImgObj) return;
+  const cw = canvas.width, ch = canvas.height; ctx.clearRect(0, 0, cw, ch);
+  ctx.save(); ctx.translate(cw/2 + posX, ch/2 + posY); ctx.scale(scale, scale);
+  ctx.drawImage(currentImgObj, -currentImgObj.naturalWidth/2, -currentImgObj.naturalHeight/2); ctx.restore();
+}
+
+canvas.addEventListener('touchstart', e => { e.preventDefault(); startTouches = [...e.touches]; lastPosX=posX; lastPosY=posY; lastScale=scale; }, {passive:false});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault(); const t = [...e.touches], cw = canvas.width, ch = canvas.height;
+  if(t.length===1 && startTouches.length===1) { posX = lastPosX + (t[0].clientX - startTouches[0].clientX); posY = lastPosY + (t[0].clientY - startTouches[0].clientY); } 
+  else if(t.length===2 && startTouches.length===2) {
+    const d1 = Math.hypot(startTouches[0].clientX-startTouches[1].clientX, startTouches[0].clientY-startTouches[1].clientY);
+    const d2 = Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
+    const ms = Math.max(cw/currentImgObj.naturalWidth, ch/currentImgObj.naturalHeight);
+    scale = Math.max(ms, Math.min(5, lastScale * (d2/d1)));
+  }
+  const lx = Math.max(0, (currentImgObj.naturalWidth*scale - cw)/2), ly = Math.max(0, (currentImgObj.naturalHeight*scale - ch)/2);
+  posX = Math.max(-lx, Math.min(lx, posX)); posY = Math.max(-ly, Math.min(ly, posY)); draw();
+}, {passive:false});
+canvas.addEventListener('touchend', () => { lastPosX = posX; lastPosY = posY; lastScale = scale; });
+
+function closeModal() { document.getElementById('img-modal').classList.remove('show'); currentImgObj = null; }
 function confirmImage() {
   const url = canvas.toDataURL("image/jpeg", 0.6);
-  if(!data.uploads) data.uploads = []; data.uploads.unshift(url);
+  if(!data.uploads) data.uploads = []; data.uploads.unshift({ img: url, color: '#4a90e2' });
   if(data.uploads.length > 3) data.uploads.pop();
   setBg(url, 'image', '#4a90e2'); closeModal();
 }
