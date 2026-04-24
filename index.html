@@ -34,12 +34,40 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
   border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); transition: background 0.3s;
 }
 
-.header { padding: 10px; display: flex; align-items: center; justify-content: space-between; gap:5px; }
-.header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; }
-/* 連続達成バッジのCSSを追加 */
-#streak-badge { font-size: 12px; font-weight: 800; color: #ff6b6b; background: rgba(255,107,107,0.1); padding: 5px 10px; border-radius: 15px; display: flex; align-items: center; gap: 4px; }
+/* ヘッダーのレイアウトをgridに変更し、日付を中央、ストリークを右に配置 */
+.header { 
+  padding: 10px; 
+  display: grid; 
+  grid-template-columns: 44px 1fr auto; 
+  align-items: center; 
+  gap: 5px; 
+}
+.header-btn { border: none; background: none; font-size: 24px; padding: 5px 10px; cursor: pointer; color: #333; grid-column: 1; }
 
-.date-nav-btn { background: none; border: none; font-size: 20px; padding: 12px 20px; color: #555; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+/* 連続達成バッジのCSSを修正：背景を消し、余白と色を調整 */
+#streak-badge { 
+  font-size: 12px; 
+  font-weight: 800; 
+  color: #555; /* 他のテキストに馴染む色に変更 */
+  /* background: rgba(255,107,107,0.1); 削除 */
+  padding: 0 5px; /* 余白を調整 */
+  /* border-radius: 15px; 削除 */
+  display: flex; 
+  align-items: center; 
+  gap: 2px; 
+  grid-column: 3; /* グリッドの3列目に配置 */
+  justify-self: end; /* 列内で右寄せ */
+}
+
+/* 日付ナビゲーションのコンテナを追加 */
+.date-nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* コンテナ内で中央揃え */
+  grid-column: 2; /* グリッドの2列目（中央）に配置 */
+}
+
+.date-nav-btn { background: none; border: none; font-size: 20px; padding: 12px 10px; /* 余白を調整 */ color: #555; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
 .date-nav-btn:active { transform: scale(0.8); }
 .date-wrap { position: relative; margin: 0 5px; }
 .date-label { font-size: 15px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); padding: 8px 15px; border-radius: 20px; white-space: nowrap; }
@@ -111,7 +139,7 @@ body { font-family: var(--app-font); background: #000; color: #1a1a1a; transitio
 <div class="app-container">
   <div class="card header">
     <button class="header-btn" onclick="openArchive()">≡</button>
-    <div style="display:flex; align-items:center; justify-content:center; flex:1;">
+    <div class="date-nav-container">
       <button class="date-nav-btn" onclick="moveDate(-1)">◀︎</button>
       <div class="date-wrap">
         <div class="date-label" id="date-label">日付</div>
@@ -279,7 +307,7 @@ function toggleSettings() {
   }
 }
 
-// 連続達成記録を計算する関数を追加
+// 連続達成記録を計算する関数
 function calcStreak() {
   let count = 0;
   let tempD = new Date();
@@ -385,7 +413,7 @@ function render() {
   });
   document.getElementById('reflection').value = localStorage.getItem('refl_' + dStr) || '';
   applySettings(); buildSwatches(); 
-  calcStreak(); // 最後にストリークを再計算して表示
+  calcStreak(); // ストリークを再計算して表示
 }
 
 function moveDate(n) { current.setDate(current.getDate() + n); render(); }
